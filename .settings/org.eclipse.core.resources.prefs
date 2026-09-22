@@ -1,2 +1,8 @@
 eclipse.preferences.version=1
+encoding//src/main/webapp/admin/companies.jsp=UTF-8
+encoding//src/main/webapp/admin/editApplication.jsp=UTF-8
+encoding//src/main/webapp/admin/editCompany.jsp=UTF-8
+encoding//src/main/webapp/admin/editInterview.jsp=UTF-8
+encoding//src/main/webapp/admin/editJob.jsp=UTF-8
+encoding//src/main/webapp/admin/reports.jsp=UTF-8
 encoding/<project>=UTF-8
