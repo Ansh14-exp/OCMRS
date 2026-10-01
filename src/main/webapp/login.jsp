@@ -11,10 +11,6 @@
 
 <style>
 
-/* =========================
-   BASIC RESET
-   ========================= */
-
 * {
     box-sizing: border-box;
 }
@@ -25,11 +21,6 @@ html, body {
     width: 100%;
     min-height: 100%;
 }
-
-
-/* =========================
-   ANIMATED BODY BACKGROUND
-   ========================= */
 
 body {
 
@@ -45,8 +36,6 @@ body {
 
     overflow: hidden;
 
-    /* Animated Gradient */
-
     background: linear-gradient(
         -45deg,
         #0f2027,
@@ -60,9 +49,6 @@ body {
 
     animation: backgroundMove 12s ease infinite;
 }
-
-
-/* Background movement */
 
 @keyframes backgroundMove {
 
@@ -79,11 +65,6 @@ body {
     }
 }
 
-
-/* =========================
-   FLOATING BACKGROUND CIRCLES
-   ========================= */
-
 .circle {
 
     position: absolute;
@@ -97,7 +78,6 @@ body {
     animation: float 8s ease-in-out infinite;
 }
 
-
 .circle1 {
 
     width: 180px;
@@ -106,7 +86,6 @@ body {
     top: 5%;
     left: 5%;
 }
-
 
 .circle2 {
 
@@ -119,7 +98,6 @@ body {
     animation-delay: 2s;
 }
 
-
 .circle3 {
 
     width: 100px;
@@ -131,7 +109,6 @@ body {
     animation-delay: 4s;
 }
 
-
 .circle4 {
 
     width: 140px;
@@ -142,7 +119,6 @@ body {
 
     animation-delay: 1s;
 }
-
 
 @keyframes float {
 
@@ -159,11 +135,6 @@ body {
     }
 }
 
-
-/* =========================
-   LOGIN CONTAINER
-   ========================= */
-
 .login-container {
 
     position: relative;
@@ -173,11 +144,6 @@ body {
     width: 380px;
 
     padding: 35px;
-
-    /*
-       Previous white login box preserved,
-       but slightly transparent for animation effect
-    */
 
     background: rgba(255, 255, 255, 0.92);
 
@@ -190,7 +156,6 @@ body {
 
     animation: loginAppear 0.8s ease;
 }
-
 
 @keyframes loginAppear {
 
@@ -211,11 +176,6 @@ body {
     }
 }
 
-
-/* =========================
-   OCMRS TITLE
-   ========================= */
-
 h1 {
 
     text-align: center;
@@ -228,7 +188,6 @@ h1 {
 
     letter-spacing: 2px;
 }
-
 
 .subtitle {
 
@@ -243,11 +202,6 @@ h1 {
     font-size: 14px;
 }
 
-
-/* =========================
-   LABELS
-   ========================= */
-
 label {
 
     display: block;
@@ -261,12 +215,8 @@ label {
     color: #333;
 }
 
-
-/* =========================
-   INPUT FIELDS
-   ========================= */
-
-input {
+input,
+select {
 
     width: 100%;
 
@@ -281,21 +231,18 @@ input {
     outline: none;
 
     transition: 0.3s;
+
+    background: white;
 }
 
-
-input:focus {
+input:focus,
+select:focus {
 
     border-color: #2c5364;
 
     box-shadow:
         0 0 8px rgba(44, 83, 100, 0.25);
 }
-
-
-/* =========================
-   LOGIN BUTTON
-   ========================= */
 
 button {
 
@@ -322,7 +269,6 @@ button {
     transition: 0.3s;
 }
 
-
 button:hover {
 
     background: #1a2980;
@@ -333,16 +279,10 @@ button:hover {
         0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
-
 button:active {
 
     transform: scale(0.98);
 }
-
-
-/* =========================
-   ERROR MESSAGE
-   ========================= */
 
 .error {
 
@@ -361,11 +301,6 @@ button:active {
     font-size: 14px;
 }
 
-
-/* =========================
-   FOOTER
-   ========================= */
-
 .footer {
 
     text-align: center;
@@ -377,11 +312,6 @@ button:active {
     font-size: 12px;
 }
 
-
-/* =========================
-   MOBILE
-   ========================= */
-
 @media (max-width: 500px) {
 
     .login-container {
@@ -390,39 +320,23 @@ button:active {
 
         padding: 30px 25px;
     }
-
 }
 
 </style>
 
 </head>
 
-
 <body>
 
-
-<!-- =========================
-     ANIMATED BACKGROUND
-     ========================= -->
-
 <div class="circle circle1"></div>
-
 <div class="circle circle2"></div>
-
 <div class="circle circle3"></div>
-
 <div class="circle circle4"></div>
 
 
-<!-- =========================
-     LOGIN BOX
-     ========================= -->
-
 <div class="login-container">
 
-
     <h1>OCMRS</h1>
-
 
     <div class="subtitle">
 
@@ -440,11 +354,8 @@ button:active {
         <!-- USERNAME -->
 
         <label for="username">
-
             Username
-
         </label>
-
 
         <input
             type="text"
@@ -458,11 +369,8 @@ button:active {
         <!-- PASSWORD -->
 
         <label for="password">
-
             Password
-
         </label>
-
 
         <input
             type="password"
@@ -473,14 +381,40 @@ button:active {
         >
 
 
+        <!-- ROLE -->
+
+        <label for="role">
+            Login As
+        </label>
+
+        <select id="role" name="role" required>
+
+            <option value="">-- Select Role --</option>
+
+            <option value="STUDENT">
+                Student
+            </option>
+
+            <option value="FACULTY">
+                Faculty
+            </option>
+
+            <option value="COMPANY">
+                Company
+            </option>
+
+            <option value="ADMIN">
+                Admin
+            </option>
+
+        </select>
+
+
         <!-- LOGIN BUTTON -->
 
         <button type="submit">
-
             Login
-
         </button>
-
 
     </form>
 
@@ -491,15 +425,12 @@ button:active {
 
         String error = request.getParameter("error");
 
-
         if ("InvalidLogin".equals(error)) {
 
     %>
 
         <div class="error">
-
             Invalid username or password!
-
         </div>
 
     <%
@@ -511,9 +442,19 @@ button:active {
     %>
 
         <div class="error">
+            Selected role does not match this account!
+        </div>
 
-            Invalid user role!
+    <%
 
+        }
+
+        else if ("StudentNotFound".equals(error)) {
+
+    %>
+
+        <div class="error">
+            Student profile not found!
         </div>
 
     <%
@@ -523,17 +464,13 @@ button:active {
     %>
 
 
-    <!-- FOOTER -->
-
     <div class="footer">
 
         OCMRS © 2026 | College Management System
 
     </div>
 
-
 </div>
-
 
 </body>
 

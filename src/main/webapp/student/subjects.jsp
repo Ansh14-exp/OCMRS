@@ -1,14 +1,23 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+
+<%@ page import="java.util.List" %>
+<%@ page import="com.ocmrs.model.Subject" %>
+<%@ page import="com.ocmrs.model.Student" %>
+
 <%
-    String username = "Student";
+    List<Subject> subjects =
+        (List<Subject>) request.getAttribute("subjects");
 
-    if (session.getAttribute("user") != null) {
-        com.ocmrs.model.User user =
-                (com.ocmrs.model.User) session.getAttribute("user");
+    Student student =
+        (Student) request.getAttribute("student");
 
-        username = user.getUsername();
+    if (subjects == null) {
+        response.sendRedirect(
+            request.getContextPath() + "/SubjectServlet"
+        );
+        return;
     }
 %>
 
@@ -16,442 +25,384 @@
 <html>
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <title>My Subjects - OCMRS</title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6fb;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ================= SIDEBAR ================= */
+
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            background: #4f46e5;
+            color: white;
+            padding: 25px 15px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h2 {
+            font-size: 25px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        /* IMPORTANT:
+           Sidebar menu vertical rahega
+        */
+
+        .menu {
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            width: 100% !important;
+        }
+
+        .menu li {
+            display: block !important;
+            list-style: none !important;
+            width: 100% !important;
+            margin: 0 0 8px 0 !important;
+            padding: 0 !important;
+        }
+
+        .menu a {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center;
 
-<title>OCMRS | Subjects</title>
+            gap: 12px;
 
-<style>
+            width: 100% !important;
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
+            padding: 13px 15px;
 
-body {
-    background: #f5f7fb;
-    color: #1e293b;
-}
+            color: white;
+            text-decoration: none;
 
-/* ================= SIDEBAR ================= */
+            border-radius: 8px;
 
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 250px;
-    height: 100vh;
+            font-size: 14px;
 
-    background: #111827;
+            transition: 0.3s;
+        }
 
-    padding: 24px 16px;
+        .menu a:hover {
+            background: rgba(255,255,255,0.15);
+        }
 
-    overflow-y: auto;
-}
+        .menu a.active {
+            background: rgba(255,255,255,0.22);
+            font-weight: bold;
+        }
 
-.logo {
-    text-align: center;
-    margin-bottom: 35px;
-}
+        /* ================= MAIN CONTENT ================= */
 
-.logo h2 {
-    color: white;
-    font-size: 27px;
-    letter-spacing: 1px;
-}
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-x: auto;
+        }
 
-.logo span {
-    color: #38bdf8;
-}
+        .page-header {
+            margin-bottom: 25px;
+        }
 
-.menu {
-    list-style: none;
-}
+        .page-header h1 {
+            color: #222;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
 
-.menu li {
-    margin: 6px 0;
-}
+        .page-header p {
+            color: #666;
+            font-size: 14px;
+        }
 
-.menu a {
-    display: flex;
-    align-items: center;
-    gap: 13px;
+        /* ================= STUDENT INFO ================= */
 
-    padding: 13px 15px;
+        .student-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
 
-    color: #cbd5e1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
 
-    text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
 
-    border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
 
-    font-size: 15px;
+        .student-info h3 {
+            color: #333;
+            margin-bottom: 7px;
+        }
 
-    transition: 0.3s;
-}
+        .student-info p {
+            color: #666;
+            font-size: 14px;
+        }
 
-.menu a:hover {
-    background: #1e293b;
-    color: white;
+        .subject-count {
+            background: #eef2ff;
+            color: #4f46e5;
 
-    transform: translateX(4px);
-}
+            padding: 12px 18px;
 
-.menu a.active {
-    background: #2563eb;
-    color: white;
-}
+            border-radius: 8px;
 
-/* ================= MAIN ================= */
+            font-weight: bold;
+        }
 
-.main {
-    margin-left: 250px;
+        /* ================= SUBJECT GRID ================= */
 
-    padding: 25px 30px;
+        .subject-grid {
+            display: grid;
 
-    min-height: 100vh;
-}
+            grid-template-columns:
+                repeat(auto-fit, minmax(260px, 1fr));
 
-/* ================= TOPBAR ================= */
+            gap: 20px;
+        }
 
-.topbar {
-    display: flex;
+        .subject-card {
+            background: white;
 
-    justify-content: space-between;
+            border-radius: 12px;
 
-    align-items: center;
+            padding: 22px;
 
-    background: white;
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.06);
 
-    padding: 18px 24px;
+            transition: 0.3s;
 
-    border-radius: 15px;
+            border-left: 5px solid #4f46e5;
+        }
 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
+        .subject-card:hover {
+            transform: translateY(-3px);
 
-.topbar h1 {
-    font-size: 23px;
-}
+            box-shadow:
+                0 8px 20px rgba(0,0,0,0.10);
+        }
 
-.user-area {
-    display: flex;
-    align-items: center;
+        .subject-icon {
+            width: 45px;
+            height: 45px;
 
-    gap: 12px;
-}
+            background: #eef2ff;
 
-.avatar {
-    width: 42px;
-    height: 42px;
+            border-radius: 10px;
 
-    border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-    background: #2563eb;
+            font-size: 22px;
 
-    color: white;
+            margin-bottom: 15px;
+        }
 
-    display: flex;
+        .subject-card h3 {
+            color: #222;
 
-    justify-content: center;
-    align-items: center;
+            font-size: 18px;
 
-    font-weight: bold;
-}
+            margin-bottom: 12px;
 
-.username {
-    font-weight: 600;
-}
+            line-height: 1.4;
+        }
 
-/* ================= PAGE HEADER ================= */
+        .subject-details {
+            display: flex;
+            justify-content: space-between;
 
-.page-header {
-    margin-top: 25px;
+            padding-top: 12px;
 
-    padding: 28px;
+            border-top: 1px solid #eee;
 
-    border-radius: 18px;
+            font-size: 13px;
 
-    color: white;
+            color: #666;
+        }
 
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #4f46e5,
-        #7c3aed
-    );
+        .credits {
+            color: #4f46e5;
+            font-weight: bold;
+        }
 
-    box-shadow: 0 10px 25px rgba(79,70,229,0.2);
-}
+        /* ================= EMPTY STATE ================= */
 
-.page-header h2 {
-    font-size: 26px;
+        .empty-box {
+            background: white;
 
-    margin-bottom: 7px;
-}
+            padding: 50px 20px;
 
-.page-header p {
-    font-size: 14px;
+            text-align: center;
 
-    opacity: 0.9;
-}
+            border-radius: 12px;
 
-/* ================= SUBJECT SUMMARY ================= */
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.06);
+        }
 
-.summary {
-    display: grid;
+        .empty-box .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
 
-    grid-template-columns:
-        repeat(3, 1fr);
+        .empty-box h3 {
+            color: #333;
+            margin-bottom: 8px;
+        }
 
-    gap: 18px;
+        .empty-box p {
+            color: #777;
+            font-size: 14px;
+        }
 
-    margin-top: 25px;
-}
+        /* ================= RESPONSIVE ================= */
 
-.summary-card {
-    background: white;
+        @media (max-width: 768px) {
 
-    padding: 22px;
+            body {
+                flex-direction: column;
+            }
 
-    border-radius: 15px;
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+            }
 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            .menu a {
+                padding: 12px 15px;
+            }
 
-    transition: 0.3s;
-}
+            .main-content {
+                padding: 20px;
+            }
 
-.summary-card:hover {
-    transform: translateY(-4px);
-}
+            .page-header h1 {
+                font-size: 24px;
+            }
 
-.summary-card h3 {
-    font-size: 27px;
+            .student-card {
+                align-items: flex-start;
+            }
+        }
 
-    color: #2563eb;
-
-    margin-bottom: 5px;
-}
-
-.summary-card p {
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-/* ================= SUBJECTS ================= */
-
-.subjects-container {
-    margin-top: 25px;
-}
-
-.subjects-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 20px;
-}
-
-.subject-card {
-    background: white;
-
-    padding: 22px;
-
-    border-radius: 15px;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-
-    transition: 0.3s;
-}
-
-.subject-card:hover {
-    transform: translateY(-5px);
-
-    box-shadow: 0 8px 22px rgba(0,0,0,0.08);
-}
-
-.subject-icon {
-    width: 48px;
-    height: 48px;
-
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    border-radius: 12px;
-
-    background: #eff6ff;
-
-    font-size: 22px;
-
-    margin-bottom: 16px;
-}
-
-.subject-card h3 {
-    font-size: 17px;
-
-    margin-bottom: 7px;
-}
-
-.subject-code {
-    font-size: 12px;
-
-    color: #64748b;
-
-    margin-bottom: 15px;
-}
-
-.subject-info {
-    display: flex;
-
-    justify-content: space-between;
-
-    padding-top: 14px;
-
-    border-top: 1px solid #eef2f7;
-}
-
-.subject-info span {
-    font-size: 12px;
-
-    color: #64748b;
-}
-
-.subject-info strong {
-    color: #334155;
-}
-
-/* ================= RESPONSIVE ================= */
-
-@media(max-width: 1050px) {
-
-    .subjects-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-}
-
-@media(max-width: 850px) {
-
-    .summary {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media(max-width: 700px) {
-
-    .sidebar {
-        width: 210px;
-    }
-
-    .main {
-        margin-left: 210px;
-
-        padding: 15px;
-    }
-
-    .topbar {
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 12px;
-    }
-
-    .subjects-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-</style>
+    </style>
 
 </head>
 
 <body>
-
 
 <!-- ================= SIDEBAR ================= -->
 
 <div class="sidebar">
 
     <div class="logo">
-        <h2>OCM<span>RS</span></h2>
+        <h2>OCMRS</h2>
+        <p>Student Portal</p>
     </div>
-
 
     <ul class="menu">
 
         <li>
-            <a href="dashboard.jsp">
-                🏠
-                <span>Dashboard</span>
+            <a href="<%= request.getContextPath() %>/student/dashboard.jsp">
+                🏠 Dashboard
             </a>
         </li>
 
         <li>
-            <a href="profile.jsp">
-                👤
-                <span>Profile</span>
+            <a href="<%= request.getContextPath() %>/StudentServlet">
+                👤 Profile
             </a>
         </li>
 
         <li>
-            <a href="enrollment.jsp">
-                📚
-                <span>Enrollment</span>
+            <a href="<%= request.getContextPath() %>/EnrollmentServlet">
+                📚 Enrollment
             </a>
         </li>
 
         <li>
-            <a href="subjects.jsp" class="active">
-                📖
-                <span>Subjects</span>
+            <a href="<%= request.getContextPath() %>/SubjectServlet"
+               class="active">
+                📖 Subjects
             </a>
         </li>
 
         <li>
-            <a href="exams.jsp">
-                📝
-                <span>Exams</span>
+            <a href="<%= request.getContextPath() %>/ExamServlet">
+                📝 Exams
             </a>
         </li>
 
         <li>
-            <a href="results.jsp">
-                📊
-                <span>Results</span>
+            <a href="<%= request.getContextPath() %>/ResultServlet">
+                📊 Results
             </a>
         </li>
 
         <li>
-            <a href="jobs.jsp">
-                💼
-                <span>Jobs</span>
+            <a href="<%= request.getContextPath() %>/JobServlet">
+                💼 Jobs
             </a>
         </li>
 
         <li>
-            <a href="apply-job.jsp">
-                📄
-                <span>Apply Job</span>
+            <a href="<%= request.getContextPath() %>/ApplicationServlet">
+                📨 Apply Job
             </a>
         </li>
 
         <li>
-            <a href="application.jsp">
-                📋
-                <span>Application</span>
+            <a href="<%= request.getContextPath() %>/ApplicationServlet">
+                📄 Applications
             </a>
         </li>
 
         <li>
-            <a href="placement.jsp">
-                🏆
-                <span>Placement</span>
+            <a href="<%= request.getContextPath() %>/PlacementServlet">
+                🎓 Placement
+            </a>
+        </li>
+
+        <li>
+            <a href="<%= request.getContextPath() %>/LogoutServlet">
+                🚪 Logout
             </a>
         </li>
 
@@ -460,242 +411,129 @@ body {
 </div>
 
 
-<!-- ================= MAIN ================= -->
+<!-- ================= MAIN CONTENT ================= -->
 
-<div class="main">
-
-
-    <!-- TOPBAR -->
-
-    <div class="topbar">
-
-        <h1>My Subjects</h1>
-
-        <div class="user-area">
-
-            <div class="avatar">
-                <%= username.substring(0,1).toUpperCase() %>
-            </div>
-
-            <span class="username">
-                <%= username %>
-            </span>
-
-        </div>
-
-    </div>
-
-
-    <!-- PAGE HEADER -->
+<div class="main-content">
 
     <div class="page-header">
 
-        <h2>Subjects 📖</h2>
+        <h1>My Subjects</h1>
 
         <p>
-            View your current semester subjects and course details.
+            View all subjects assigned to your course.
         </p>
 
     </div>
 
 
-    <!-- SUMMARY -->
+    <!-- ================= STUDENT INFO ================= -->
 
-    <div class="summary">
+    <%
+        if (student != null) {
+    %>
 
-        <div class="summary-card">
+    <div class="student-card">
 
-            <h3>06</h3>
+        <div class="student-info">
 
-            <p>Total Subjects</p>
+            <h3>
+                👨‍🎓
+                <%= student.getName() %>
+            </h3>
 
-        </div>
+            <p>
+                Student ID:
+                <strong><%= student.getStudentId() %></strong>
+                &nbsp;&nbsp; | &nbsp;&nbsp;
 
-
-        <div class="summary-card">
-
-            <h3>18</h3>
-
-            <p>Total Credits</p>
-
-        </div>
-
-
-        <div class="summary-card">
-
-            <h3>2026-27</h3>
-
-            <p>Academic Year</p>
+                Course ID:
+                <strong><%= student.getCourseId() %></strong>
+            </p>
 
         </div>
 
-    </div>
-
-
-    <!-- SUBJECT CARDS -->
-
-    <div class="subjects-container">
-
-        <div class="subjects-grid">
-
-
-            <!-- Subject 1 -->
-
-            <div class="subject-card">
-
-                <div class="subject-icon">
-                    💻
-                </div>
-
-                <h3>Java Programming</h3>
-
-                <div class="subject-code">
-                    Subject Code: CS301
-                </div>
-
-                <div class="subject-info">
-
-                    <span>Credits</span>
-
-                    <strong>3</strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- Subject 2 -->
-
-            <div class="subject-card">
-
-                <div class="subject-icon">
-                    🗄️
-                </div>
-
-                <h3>Database Management</h3>
-
-                <div class="subject-code">
-                    Subject Code: CS302
-                </div>
-
-                <div class="subject-info">
-
-                    <span>Credits</span>
-
-                    <strong>4</strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- Subject 3 -->
-
-            <div class="subject-card">
-
-                <div class="subject-icon">
-                    🌐
-                </div>
-
-                <h3>Web Technology</h3>
-
-                <div class="subject-code">
-                    Subject Code: CS303
-                </div>
-
-                <div class="subject-info">
-
-                    <span>Credits</span>
-
-                    <strong>3</strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- Subject 4 -->
-
-            <div class="subject-card">
-
-                <div class="subject-icon">
-                    🧠
-                </div>
-
-                <h3>Data Structures</h3>
-
-                <div class="subject-code">
-                    Subject Code: CS304
-                </div>
-
-                <div class="subject-info">
-
-                    <span>Credits</span>
-
-                    <strong>3</strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- Subject 5 -->
-
-            <div class="subject-card">
-
-                <div class="subject-icon">
-                    ⚙️
-                </div>
-
-                <h3>Operating Systems</h3>
-
-                <div class="subject-code">
-                    Subject Code: CS305
-                </div>
-
-                <div class="subject-info">
-
-                    <span>Credits</span>
-
-                    <strong>3</strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- Subject 6 -->
-
-            <div class="subject-card">
-
-                <div class="subject-icon">
-                    📐
-                </div>
-
-                <h3>Computer Networks</h3>
-
-                <div class="subject-code">
-                    Subject Code: CS306
-                </div>
-
-                <div class="subject-info">
-
-                    <span>Credits</span>
-
-                    <strong>2</strong>
-
-                </div>
-
-            </div>
-
+        <div class="subject-count">
+
+            📚
+            <%= subjects.size() %>
+            Subject<%= subjects.size() == 1 ? "" : "s" %>
 
         </div>
 
     </div>
 
+    <%
+        }
+    %>
+
+
+    <!-- ================= SUBJECTS ================= -->
+
+    <%
+        if (subjects.isEmpty()) {
+    %>
+
+        <div class="empty-box">
+
+            <div class="icon">📚</div>
+
+            <h3>No Subjects Found</h3>
+
+            <p>
+                No subjects are currently assigned to your course.
+            </p>
+
+        </div>
+
+    <%
+        } else {
+    %>
+
+        <div class="subject-grid">
+
+            <%
+                for (Subject subject : subjects) {
+            %>
+
+                <div class="subject-card">
+
+                    <div class="subject-icon">
+                        📖
+                    </div>
+
+                    <h3>
+                        <%= subject.getSubjectName() %>
+                    </h3>
+
+                    <div class="subject-details">
+
+                        <span>
+                            Subject ID:
+                            <strong>
+                                <%= subject.getSubjectId() %>
+                            </strong>
+                        </span>
+
+                        <span class="credits">
+                            <%= subject.getCredits() %>
+                            Credits
+                        </span>
+
+                    </div>
+
+                </div>
+
+            <%
+                }
+            %>
+
+        </div>
+
+    <%
+        }
+    %>
 
 </div>
-
 
 </body>
 </html>

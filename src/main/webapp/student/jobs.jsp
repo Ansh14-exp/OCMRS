@@ -1,14 +1,19 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ page import="java.util.List" %>
+<%@ page import="com.ocmrs.model.Job" %>
+
 <%
-    String username = "Student";
+    List<Job> jobs =
+        (List<Job>) request.getAttribute("jobs");
 
-    if (session.getAttribute("user") != null) {
-        com.ocmrs.model.User user =
-                (com.ocmrs.model.User) session.getAttribute("user");
-
-        username = user.getUsername();
+    if (jobs == null) {
+        response.sendRedirect(
+            request.getContextPath() + "/JobServlet"
+        );
+        return;
     }
 %>
 
@@ -16,896 +21,539 @@
 <html>
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<title>OCMRS | Jobs</title>
+    <title>Available Jobs - OCMRS</title>
 
-<style>
+    <style>
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-body {
-    background: #f5f7fb;
-    color: #1e293b;
-}
+        body {
+            background: #f4f7fb;
+            color: #333;
+        }
 
-/* ================= SIDEBAR ================= */
+        /* ================= SIDEBAR ================= */
 
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 250px;
-    height: 100vh;
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
 
-    background: #111827;
+            width: 240px;
+            height: 100vh;
 
-    padding: 24px 16px;
+            background: linear-gradient(
+                180deg,
+                #667eea,
+                #764ba2
+            );
 
-    overflow-y: auto;
-}
+            padding-top: 25px;
 
-.logo {
-    text-align: center;
-    margin-bottom: 35px;
-}
+            box-shadow:
+                3px 0 15px rgba(0,0,0,0.12);
 
-.logo h2 {
-    color: white;
-    font-size: 27px;
-    letter-spacing: 1px;
-}
+            overflow-y: auto;
+        }
 
-.logo span {
-    color: #38bdf8;
-}
+        .logo {
+            text-align: center;
+            color: white;
 
-.menu {
-    list-style: none;
-}
+            margin-bottom: 25px;
+            padding-bottom: 20px;
 
-.menu li {
-    margin: 6px 0;
-}
+            border-bottom:
+                1px solid rgba(255,255,255,0.2);
+        }
 
-.menu a {
-    display: flex;
-    align-items: center;
-    gap: 13px;
+        .logo h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
 
-    padding: 13px 15px;
+        .logo p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
 
-    color: #cbd5e1;
+        .sidebar a {
+            display: block;
 
-    text-decoration: none;
+            color: white;
+            text-decoration: none;
 
-    border-radius: 10px;
+            padding: 14px 22px;
+            margin: 5px 12px;
 
-    font-size: 15px;
+            border-radius: 8px;
 
-    transition: 0.3s;
-}
+            font-size: 15px;
 
-.menu a:hover {
-    background: #1e293b;
-    color: white;
-    transform: translateX(4px);
-}
+            transition: 0.3s;
+        }
 
-.menu a.active {
-    background: #2563eb;
-    color: white;
-}
+        .sidebar a:hover {
+            background: rgba(255,255,255,0.18);
+            transform: translateX(4px);
+        }
 
-/* ================= MAIN ================= */
+        .sidebar a.active {
+            background: rgba(255,255,255,0.25);
 
-.main {
-    margin-left: 250px;
-    padding: 25px 30px;
-    min-height: 100vh;
-}
+            font-weight: bold;
 
-/* ================= TOPBAR ================= */
+            box-shadow:
+                0 3px 10px rgba(0,0,0,0.12);
+        }
 
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+        /* ================= MAIN CONTENT ================= */
 
-    background: white;
+        .main-content {
+            margin-left: 240px;
+            padding: 40px;
 
-    padding: 18px 24px;
+            min-height: 100vh;
+        }
 
-    border-radius: 15px;
+        .header {
+            background: linear-gradient(
+                135deg,
+                #1e3c72,
+                #2a5298
+            );
 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
+            color: white;
 
-.topbar h1 {
-    font-size: 23px;
-}
+            padding: 25px 35px;
 
-.user-area {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+            border-radius: 15px;
 
-.avatar {
-    width: 42px;
-    height: 42px;
+            margin-bottom: 30px;
 
-    border-radius: 50%;
+            box-shadow:
+                0 3px 10px rgba(0,0,0,0.15);
+        }
 
-    background: #2563eb;
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
 
-    color: white;
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+        /* ================= JOB CARD ================= */
 
-    font-weight: bold;
-}
+        .card {
+            background: white;
 
-.username {
-    font-weight: 600;
-}
+            border-radius: 12px;
 
-/* ================= HEADER ================= */
+            padding: 25px;
 
-.page-header {
-    margin-top: 25px;
+            margin-bottom: 20px;
 
-    padding: 28px;
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.08);
 
-    border-radius: 18px;
+            transition: 0.3s;
+        }
 
-    color: white;
+        .card:hover {
+            transform: translateY(-3px);
 
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #4f46e5,
-        #7c3aed
-    );
+            box-shadow:
+                0 7px 20px rgba(0,0,0,0.12);
+        }
 
-    box-shadow: 0 10px 25px rgba(79,70,229,0.2);
-}
+        .company {
+            color: #1e3c72;
 
-.page-header h2 {
-    font-size: 26px;
-    margin-bottom: 7px;
-}
+            font-size: 14px;
 
-.page-header p {
-    font-size: 14px;
-    opacity: 0.9;
-}
+            font-weight: bold;
 
-/* ================= SUMMARY ================= */
+            margin-bottom: 8px;
+        }
 
-.summary {
-    display: grid;
+        .title {
+            font-size: 22px;
 
-    grid-template-columns:
-        repeat(3, 1fr);
+            font-weight: bold;
 
-    gap: 18px;
+            margin-bottom: 12px;
+        }
 
-    margin-top: 25px;
-}
+        .description {
+            color: #666;
 
-.summary-card {
-    background: white;
+            line-height: 1.6;
 
-    padding: 22px;
+            margin-bottom: 18px;
+        }
 
-    border-radius: 15px;
+        .details {
+            display: flex;
 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
+            flex-wrap: wrap;
 
-.summary-card h3 {
-    font-size: 27px;
+            gap: 12px;
 
-    color: #2563eb;
+            margin-bottom: 20px;
+        }
 
-    margin-bottom: 5px;
-}
+        .detail {
+            background: #f1f4f9;
 
-.summary-card p {
-    color: #64748b;
+            padding: 9px 13px;
 
-    font-size: 13px;
-}
+            border-radius: 6px;
 
-/* ================= JOBS ================= */
+            font-size: 14px;
+        }
 
-.jobs-grid {
-    display: grid;
+        /* ================= APPLY BUTTON ================= */
 
-    grid-template-columns:
-        repeat(2, 1fr);
+        .apply-btn {
+            display: inline-block;
 
-    gap: 20px;
+            background: #1e3c72;
 
-    margin-top: 25px;
-}
+            color: white;
 
-.job-card {
-    background: white;
+            padding: 10px 20px;
 
-    padding: 24px;
+            border-radius: 6px;
 
-    border-radius: 16px;
+            text-decoration: none;
 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-weight: bold;
 
-    transition: 0.3s;
-}
+            transition: 0.3s;
+        }
 
-.job-card:hover {
-    transform: translateY(-5px);
+        .apply-btn:hover {
+            background: #2a5298;
 
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-}
+            transform: translateY(-2px);
+        }
 
-/* JOB TOP */
+        /* ================= NO JOBS ================= */
 
-.job-top {
-    display: flex;
+        .no-jobs {
+            background: white;
 
-    justify-content: space-between;
+            text-align: center;
 
-    align-items: flex-start;
+            padding: 40px;
 
-    margin-bottom: 18px;
-}
+            border-radius: 12px;
 
-.company-logo {
-    width: 52px;
-    height: 52px;
+            color: #777;
 
-    border-radius: 13px;
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.08);
+        }
 
-    background: #eff6ff;
+        .no-jobs h2 {
+            margin-bottom: 10px;
+        }
 
-    display: flex;
+        /* ================= BACK BUTTON ================= */
 
-    justify-content: center;
-    align-items: center;
+        .back-btn {
+            display: inline-block;
 
-    font-size: 23px;
-}
+            margin-top: 5px;
 
-.job-type {
-    padding: 6px 11px;
+            padding: 10px 18px;
 
-    border-radius: 20px;
+            background: #555;
 
-    background: #dcfce7;
+            color: white;
 
-    color: #166534;
+            text-decoration: none;
 
-    font-size: 11px;
+            border-radius: 6px;
 
-    font-weight: 600;
-}
+            transition: 0.3s;
+        }
 
-/* JOB DETAILS */
+        .back-btn:hover {
+            background: #333;
 
-.job-card h2 {
-    font-size: 19px;
+            transform: translateY(-2px);
+        }
 
-    margin-bottom: 5px;
-}
+        /* ================= RESPONSIVE ================= */
 
-.company {
-    color: #64748b;
+        @media (max-width: 900px) {
 
-    font-size: 13px;
+            .sidebar {
+                width: 200px;
+            }
 
-    margin-bottom: 17px;
-}
+            .main-content {
+                margin-left: 200px;
+                padding: 25px;
+            }
+        }
 
-.details {
-    display: grid;
+        @media (max-width: 700px) {
 
-    grid-template-columns:
-        1fr 1fr;
+            .sidebar {
+                position: relative;
 
-    gap: 12px;
+                width: 100%;
+                height: auto;
+            }
 
-    margin-bottom: 20px;
-}
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
 
-.detail {
-    padding: 11px;
+            .sidebar a {
+                display: inline-block;
+                width: auto;
+            }
+        }
 
-    background: #f8fafc;
-
-    border-radius: 9px;
-}
-
-.detail span {
-    display: block;
-
-    color: #64748b;
-
-    font-size: 11px;
-
-    margin-bottom: 4px;
-}
-
-.detail strong {
-    font-size: 12px;
-
-    color: #334155;
-}
-
-/* FOOTER */
-
-.job-footer {
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    padding-top: 17px;
-
-    border-top: 1px solid #eef2f7;
-}
-
-.deadline {
-    color: #64748b;
-
-    font-size: 11px;
-}
-
-.apply-btn {
-    display: inline-block;
-
-    padding: 9px 17px;
-
-    background: #2563eb;
-
-    color: white;
-
-    text-decoration: none;
-
-    border-radius: 8px;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-    transition: 0.3s;
-}
-
-.apply-btn:hover {
-    background: #1d4ed8;
-
-    transform: translateY(-2px);
-}
-
-/* ================= RESPONSIVE ================= */
-
-@media(max-width: 950px) {
-
-    .jobs-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media(max-width: 800px) {
-
-    .summary {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media(max-width: 700px) {
-
-    .sidebar {
-        width: 210px;
-    }
-
-    .main {
-        margin-left: 210px;
-
-        padding: 15px;
-    }
-
-    .topbar {
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 12px;
-    }
-}
-
-</style>
+    </style>
 
 </head>
 
 <body>
 
 
-<!-- ================= SIDEBAR ================= -->
+<!-- =====================================================
+     SIDEBAR
+     ===================================================== -->
 
 <div class="sidebar">
 
     <div class="logo">
 
-        <h2>OCM<span>RS</span></h2>
+        <h2>OCMRS</h2>
+
+        <p>Student Portal</p>
 
     </div>
 
 
-    <ul class="menu">
+    <a href="<%= request.getContextPath() %>/student/dashboard.jsp">
 
-        <li>
-            <a href="dashboard.jsp">
-                🏠
-                <span>Dashboard</span>
-            </a>
-        </li>
+        🏠 Dashboard
 
-        <li>
-            <a href="profile.jsp">
-                👤
-                <span>Profile</span>
-            </a>
-        </li>
+    </a>
 
-        <li>
-            <a href="enrollment.jsp">
-                📚
-                <span>Enrollment</span>
-            </a>
-        </li>
 
-        <li>
-            <a href="subjects.jsp">
-                📖
-                <span>Subjects</span>
-            </a>
-        </li>
+    <a href="<%= request.getContextPath() %>/StudentServlet">
 
-        <li>
-            <a href="exams.jsp">
-                📝
-                <span>Exams</span>
-            </a>
-        </li>
+        👤 Profile
 
-        <li>
-            <a href="results.jsp">
-                📊
-                <span>Results</span>
-            </a>
-        </li>
+    </a>
 
-        <li>
-            <a href="jobs.jsp" class="active">
-                💼
-                <span>Jobs</span>
-            </a>
-        </li>
 
-        <li>
-            <a href="apply-job.jsp">
-                📄
-                <span>Apply Job</span>
-            </a>
-        </li>
+    <a href="<%= request.getContextPath() %>/EnrollmentServlet">
 
-        <li>
-            <a href="application.jsp">
-                📋
-                <span>Application</span>
-            </a>
-        </li>
+        📚 Enrollment
 
-        <li>
-            <a href="placement.jsp">
-                🏆
-                <span>Placement</span>
-            </a>
-        </li>
+    </a>
 
-    </ul>
+
+    <a href="<%= request.getContextPath() %>/SubjectServlet">
+
+        📖 Subjects
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/ExamServlet">
+
+        📝 Exams
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/ResultServlet">
+
+        📊 Results
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/JobServlet"
+       class="active">
+
+        💼 Jobs
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/ApplicationServlet?action=apply">
+
+    📨 Apply Job
+
+</a>
+
+
+    <a href="<%= request.getContextPath() %>/ApplicationServlet">
+
+        📄 Applications
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/PlacementServlet">
+
+        🎓 Placement
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/LogoutServlet">
+
+        🚪 Logout
+
+    </a>
 
 </div>
 
 
-<!-- ================= MAIN ================= -->
+<!-- =====================================================
+     MAIN CONTENT
+     ===================================================== -->
 
-<div class="main">
-
-
-    <!-- TOPBAR -->
-
-    <div class="topbar">
-
-        <h1>Job Opportunities</h1>
-
-        <div class="user-area">
-
-            <div class="avatar">
-                <%= username.substring(0,1).toUpperCase() %>
-            </div>
-
-            <span class="username">
-                <%= username %>
-            </span>
-
-        </div>
-
-    </div>
+<div class="main-content">
 
 
     <!-- HEADER -->
 
-    <div class="page-header">
+    <div class="header">
 
-        <h2>Find Your Opportunity 💼</h2>
+        <h1>💼 Available Jobs</h1>
 
         <p>
-            Explore available jobs and placement opportunities
-            posted by companies.
+            Explore career opportunities from recruiting companies
         </p>
 
     </div>
 
 
-    <!-- SUMMARY -->
+    <!-- JOB DATA -->
 
-    <div class="summary">
-
-        <div class="summary-card">
-
-            <h3>12</h3>
-
-            <p>Available Jobs</p>
-
-        </div>
+    <% if (jobs.isEmpty()) { %>
 
 
-        <div class="summary-card">
+        <div class="no-jobs">
 
-            <h3>05</h3>
+            <h2>No Jobs Available</h2>
 
-            <p>Companies</p>
-
-        </div>
-
-
-        <div class="summary-card">
-
-            <h3>04</h3>
-
-            <p>New Jobs</p>
-
-        </div>
-
-    </div>
-
-
-    <!-- JOBS -->
-
-    <div class="jobs-grid">
-
-
-        <!-- JOB 1 -->
-
-        <div class="job-card">
-
-            <div class="job-top">
-
-                <div class="company-logo">
-                    💻
-                </div>
-
-                <span class="job-type">
-                    Full Time
-                </span>
-
-            </div>
-
-            <h2>Java Developer</h2>
-
-            <p class="company">
-                Tech Solutions Pvt. Ltd.
+            <p>
+                There are currently no job openings.
             </p>
 
-
-            <div class="details">
-
-                <div class="detail">
-
-                    <span>Location</span>
-
-                    <strong>Kolkata</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Experience</span>
-
-                    <strong>Fresher</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Salary</span>
-
-                    <strong>₹4 - 6 LPA</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Department</span>
-
-                    <strong>IT</strong>
-
-                </div>
-
-            </div>
-
-
-            <div class="job-footer">
-
-                <span class="deadline">
-                    Deadline: 30 Oct 2026
-                </span>
-
-                <a href="apply-job.jsp" class="apply-btn">
-                    Apply Now
-                </a>
-
-            </div>
-
         </div>
 
 
-        <!-- JOB 2 -->
-
-        <div class="job-card">
-
-            <div class="job-top">
-
-                <div class="company-logo">
-                    🌐
-                </div>
-
-                <span class="job-type">
-                    Full Time
-                </span>
-
-            </div>
-
-            <h2>Web Developer</h2>
-
-            <p class="company">
-                Digital Works India
-            </p>
+    <% } else { %>
 
 
-            <div class="details">
+        <% for (Job job : jobs) { %>
 
-                <div class="detail">
 
-                    <span>Location</span>
+            <div class="card">
 
-                    <strong>Bangalore</strong>
+
+                <div class="company">
+
+                    <%= job.getCompanyName() %>
 
                 </div>
 
-                <div class="detail">
 
-                    <span>Experience</span>
+                <div class="title">
 
-                    <strong>Fresher</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Salary</span>
-
-                    <strong>₹3.5 - 5 LPA</strong>
+                    <%= job.getTitle() %>
 
                 </div>
 
-                <div class="detail">
 
-                    <span>Department</span>
+                <div class="description">
 
-                    <strong>IT</strong>
+                    <%= job.getDescription() %>
 
                 </div>
 
-            </div>
+
+                <div class="details">
 
 
-            <div class="job-footer">
+                    <div class="detail">
 
-                <span class="deadline">
-                    Deadline: 05 Nov 2026
-                </span>
+                        💰 Salary:
+                        <%= job.getSalaryRange() %>
 
-                <a href="apply-job.jsp" class="apply-btn">
+                    </div>
+
+
+                    <div class="detail">
+
+                        📍 Location:
+                        <%= job.getLocation() %>
+
+                    </div>
+
+
+                    <div class="detail">
+
+                        📅 Last Date:
+                        <%= job.getLastDate() %>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- APPLY NOW -->
+
+                <a href="<%= request.getContextPath() %>/ApplicationServlet?jobId=<%= job.getJobId() %>"
+                   class="apply-btn">
+
                     Apply Now
+
                 </a>
 
-            </div>
-
-        </div>
-
-
-        <!-- JOB 3 -->
-
-        <div class="job-card">
-
-            <div class="job-top">
-
-                <div class="company-logo">
-                    🗄️
-                </div>
-
-                <span class="job-type">
-                    Full Time
-                </span>
-
-            </div>
-
-            <h2>Database Developer</h2>
-
-            <p class="company">
-                DataCore Technologies
-            </p>
-
-
-            <div class="details">
-
-                <div class="detail">
-
-                    <span>Location</span>
-
-                    <strong>Hyderabad</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Experience</span>
-
-                    <strong>Fresher</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Salary</span>
-
-                    <strong>₹4 - 5.5 LPA</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Department</span>
-
-                    <strong>IT</strong>
-
-                </div>
 
             </div>
 
 
-            <div class="job-footer">
-
-                <span class="deadline">
-                    Deadline: 10 Nov 2026
-                </span>
-
-                <a href="apply-job.jsp" class="apply-btn">
-                    Apply Now
-                </a>
-
-            </div>
-
-        </div>
+        <% } %>
 
 
-        <!-- JOB 4 -->
-
-        <div class="job-card">
-
-            <div class="job-top">
-
-                <div class="company-logo">
-                    ⚙️
-                </div>
-
-                <span class="job-type">
-                    Internship
-                </span>
-
-            </div>
-
-            <h2>Software Intern</h2>
-
-            <p class="company">
-                Innovation Labs
-            </p>
+    <% } %>
 
 
-            <div class="details">
+    <!-- BACK BUTTON -->
 
-                <div class="detail">
+    <a href="<%= request.getContextPath() %>/student/dashboard.jsp"
+       class="back-btn">
 
-                    <span>Location</span>
+        ← Back to Dashboard
 
-                    <strong>Pune</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Experience</span>
-
-                    <strong>Student</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Stipend</span>
-
-                    <strong>₹15K / Month</strong>
-
-                </div>
-
-                <div class="detail">
-
-                    <span>Department</span>
-
-                    <strong>Software</strong>
-
-                </div>
-
-            </div>
-
-
-            <div class="job-footer">
-
-                <span class="deadline">
-                    Deadline: 15 Nov 2026
-                </span>
-
-                <a href="apply-job.jsp" class="apply-btn">
-                    Apply Now
-                </a>
-
-            </div>
-
-        </div>
-
-
-    </div>
+    </a>
 
 
 </div>

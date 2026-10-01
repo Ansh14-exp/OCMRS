@@ -1,560 +1,685 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ page import="java.util.List" %>
+<%@ page import="com.ocmrs.model.Placement" %>
+
+<%
+    List<Placement> placements =
+        (List<Placement>) request.getAttribute("placements");
+
+    if (placements == null) {
+        placements = new java.util.ArrayList<Placement>();
+    }
+
+    int totalPlacements = placements.size();
+
+    int selectedCount = 0;
+    int pendingCount = 0;
+    int rejectedCount = 0;
+
+    for (Placement placement : placements) {
+
+        String status = placement.getStatus();
+
+        if (status == null) {
+            continue;
+        }
+
+        if (status.equalsIgnoreCase("Selected")
+                || status.equalsIgnoreCase("Placed")) {
+
+            selectedCount++;
+
+        } else if (status.equalsIgnoreCase("Pending")
+                || status.equalsIgnoreCase("Under Review")) {
+
+            pendingCount++;
+
+        } else if (status.equalsIgnoreCase("Rejected")
+                || status.equalsIgnoreCase("Not Selected")) {
+
+            rejectedCount++;
+        }
+    }
+%>
+
 <!DOCTYPE html>
 <html>
+
 <head>
 
-<meta charset="UTF-8">
-<title>Placement - OCMRS</title>
-
-<style>
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
-body {
-    background: #f4f7fc;
-    color: #222;
-}
-
-/* SIDEBAR */
-
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 240px;
-    height: 100vh;
-    background: linear-gradient(180deg, #111827, #1e1b4b);
-    padding: 25px 15px;
-    color: white;
-}
-
-.logo {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.logo h2 {
-    color: #60a5fa;
-    font-size: 27px;
-}
-
-.logo p {
-    font-size: 12px;
-    color: #cbd5e1;
-    margin-top: 5px;
-}
-
-.sidebar a {
-    display: block;
-    color: #dbeafe;
-    text-decoration: none;
-    padding: 13px 15px;
-    margin: 6px 0;
-    border-radius: 10px;
-    transition: 0.3s;
-}
-
-.sidebar a:hover,
-.sidebar a.active {
-    background: linear-gradient(90deg, #2563eb, #7c3aed);
-    color: white;
-}
-
-
-/* MAIN */
-
-.main {
-    margin-left: 240px;
-    padding: 30px;
-}
-
-
-/* HEADER */
-
-.header {
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    color: white;
-    padding: 25px;
-    border-radius: 18px;
-    margin-bottom: 25px;
-}
-
-.header h1 {
-    font-size: 28px;
-}
-
-.header p {
-    margin-top: 8px;
-    color: #e0e7ff;
-}
-
-
-/* SUMMARY CARDS */
-
-.cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin-bottom: 25px;
-}
-
-.card {
-    background: white;
-    padding: 22px;
-    border-radius: 15px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.07);
-}
-
-.card h3 {
-    color: #64748b;
-    font-size: 14px;
-}
-
-.card h2 {
-    margin-top: 10px;
-    color: #1e293b;
-    font-size: 27px;
-}
-
-
-/* PLACEMENT STATUS */
-
-.placement-box {
-    background: white;
-    padding: 30px;
-    border-radius: 18px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-    margin-bottom: 25px;
-}
-
-.placement-box h2 {
-    color: #1e293b;
-    margin-bottom: 20px;
-}
-
-
-/* STATUS */
-
-.status-container {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    padding: 25px;
-    border-radius: 15px;
-}
-
-.status-icon {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: #dbeafe;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-}
-
-.status-text h3 {
-    color: #1d4ed8;
-    margin-bottom: 8px;
-}
-
-.status-text p {
-    color: #475569;
-}
-
-
-/* PLACEMENT DETAILS */
-
-.details {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-}
-
-.detail-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 20px;
-    border-radius: 12px;
-}
-
-.detail-card h4 {
-    color: #64748b;
-    font-size: 13px;
-    margin-bottom: 8px;
-}
-
-.detail-card p {
-    color: #1e293b;
-    font-size: 17px;
-    font-weight: bold;
-}
-
-
-/* TIMELINE */
-
-.timeline-box {
-    background: white;
-    padding: 30px;
-    border-radius: 18px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-}
-
-.timeline-box h2 {
-    margin-bottom: 25px;
-    color: #1e293b;
-}
-
-.timeline {
-    border-left: 3px solid #2563eb;
-    padding-left: 25px;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 25px;
-}
-
-.timeline-item::before {
-    content: "";
-    position: absolute;
-    left: -34px;
-    top: 2px;
-    width: 14px;
-    height: 14px;
-    background: #2563eb;
-    border-radius: 50%;
-}
-
-.timeline-item h3 {
-    color: #1e40af;
-    margin-bottom: 5px;
-}
-
-.timeline-item p {
-    color: #64748b;
-    font-size: 14px;
-}
-
-
-/* NOTICE */
-
-.notice {
-    margin-top: 25px;
-    background: #f0fdf4;
-    border-left: 5px solid #16a34a;
-    padding: 18px;
-    border-radius: 10px;
-}
-
-.notice h3 {
-    color: #166534;
-    margin-bottom: 8px;
-}
-
-.notice p {
-    color: #475569;
-}
-
-
-/* RESPONSIVE */
-
-@media (max-width: 1000px) {
-
-    .cards {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .details {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 700px) {
-
-    .sidebar {
-        width: 200px;
-    }
-
-    .main {
-        margin-left: 200px;
-        padding: 20px;
-    }
-
-    .cards {
-        grid-template-columns: 1fr;
-    }
-
-    .status-container {
-        flex-direction: column;
-        text-align: center;
-    }
-}
-
-</style>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Placement | OCMRS</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f4f7fb;
+            color: #222;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ================= SIDEBAR ================= */
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #172554, #1e3a8a);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            padding: 25px 15px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h2 {
+            font-size: 25px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu li {
+            margin-bottom: 8px;
+        }
+
+        .menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .menu a:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .menu a.active {
+            background: rgba(255,255,255,0.20);
+            font-weight: bold;
+        }
+
+        /* ================= MAIN ================= */
+
+        .main {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #172554;
+            font-size: 28px;
+        }
+
+        .header p {
+            color: #666;
+            margin-top: 6px;
+        }
+
+        .user-box {
+            background: white;
+            padding: 11px 18px;
+            border-radius: 8px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        /* ================= STATISTICS ================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            font-size: 28px;
+            color: #1d4ed8;
+            margin-bottom: 7px;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* ================= PLACEMENT SECTION ================= */
+
+        .placement-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            color: #172554;
+            font-size: 21px;
+        }
+
+        .section-header p {
+            color: #777;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* ================= TABLE ================= */
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #eff6ff;
+            color: #172554;
+            padding: 14px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        /* ================= STATUS ================= */
+
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-selected {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-default {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* ================= EMPTY ================= */
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
+
+        .empty h3 {
+            color: #172554;
+            margin-bottom: 8px;
+        }
+
+        .empty p {
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .job-button {
+            display: inline-block;
+            background: #1d4ed8;
+            color: white;
+            text-decoration: none;
+            padding: 11px 20px;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        .job-button:hover {
+            background: #163ea8;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                width: 210px;
+            }
+
+            .main {
+                margin-left: 210px;
+                width: calc(100% - 210px);
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .container {
+                display: block;
+            }
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+            }
+
+            .main {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+
+    </style>
 
 </head>
 
 <body>
 
+<div class="container">
 
-<!-- SIDEBAR -->
+    <!-- ================= SIDEBAR ================= -->
 
-<div class="sidebar">
+    <aside class="sidebar">
 
-    <div class="logo">
-        <h2>OCMRS</h2>
-        <p>Student Portal</p>
-    </div>
-
-    <a href="dashboard.jsp">🏠 Dashboard</a>
-    <a href="profile.jsp">👤 Profile</a>
-    <a href="enrollment.jsp">📚 Enrollment</a>
-    <a href="subjects.jsp">📖 Subjects</a>
-    <a href="exams.jsp">📝 Exams</a>
-    <a href="results.jsp">📊 Results</a>
-    <a href="jobs.jsp">💼 Jobs</a>
-    <a href="apply-job.jsp">📨 Apply Job</a>
-    <a href="application.jsp">📄 Applications</a>
-    <a href="placement.jsp" class="active">🎓 Placement</a>
-
-</div>
-
-
-<!-- MAIN CONTENT -->
-
-<div class="main">
-
-
-    <!-- HEADER -->
-
-    <div class="header">
-
-        <h1>Placement Dashboard</h1>
-
-        <p>
-            Track your placement progress and selection details.
-        </p>
-
-    </div>
-
-
-    <!-- SUMMARY -->
-
-    <div class="cards">
-
-        <div class="card">
-
-            <h3>Applications</h3>
-
-            <h2>04</h2>
-
+        <div class="logo">
+            <h2>OCMRS</h2>
+            <p>Student Portal</p>
         </div>
 
+        <ul class="menu">
 
-        <div class="card">
+            <li>
+                <a href="<%= request.getContextPath() %>/student/dashboard.jsp">
+                    🏠
+                    <span>Dashboard</span>
+                </a>
+            </li>
 
-            <h3>Shortlisted</h3>
+            <li>
+                <a href="<%= request.getContextPath() %>/StudentServlet">
+                    👤
+                    <span>Profile</span>
+                </a>
+            </li>
 
-            <h2>02</h2>
+            <li>
+                <a href="<%= request.getContextPath() %>/EnrollmentServlet">
+                    📚
+                    <span>Enrollment</span>
+                </a>
+            </li>
 
-        </div>
+            <li>
+                <a href="<%= request.getContextPath() %>/SubjectServlet">
+                    📖
+                    <span>Subjects</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<%= request.getContextPath() %>/ExamServlet">
+                    📝
+                    <span>Exams</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<%= request.getContextPath() %>/ResultServlet">
+                    📊
+                    <span>Results</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<%= request.getContextPath() %>/JobServlet">
+                    💼
+                    <span>Jobs</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<%= request.getContextPath() %>/JobServlet">
+                    📨
+                    <span>Apply Job</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<%= request.getContextPath() %>/ApplicationServlet">
+                    📄
+                    <span>Applications</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<%= request.getContextPath() %>/PlacementServlet"
+                   class="active">
+                    🎓
+                    <span>Placement</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<%= request.getContextPath() %>/LogoutServlet">
+                    🚪
+                    <span>Logout</span>
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
 
 
-        <div class="card">
+    <!-- ================= MAIN CONTENT ================= -->
 
-            <h3>Interviews</h3>
+    <main class="main">
 
-            <h2>01</h2>
+        <div class="header">
 
-        </div>
+            <div>
 
-
-        <div class="card">
-
-            <h3>Placement Status</h3>
-
-            <h2>Selected</h2>
-
-        </div>
-
-    </div>
-
-
-    <!-- PLACEMENT STATUS -->
-
-    <div class="placement-box">
-
-        <h2>Current Placement Status</h2>
-
-
-        <div class="status-container">
-
-            <div class="status-icon">
-                🎉
-            </div>
-
-
-            <div class="status-text">
-
-                <h3>Congratulations!</h3>
+                <h1>Placement Dashboard</h1>
 
                 <p>
-                    You have been selected for a placement opportunity.
+                    Track your placement progress and selection details.
                 </p>
 
             </div>
 
-        </div>
-
-
-        <br>
-
-
-        <!-- DETAILS -->
-
-        <div class="details">
-
-            <div class="detail-card">
-
-                <h4>Company</h4>
-
-                <p>Tech Solutions Pvt. Ltd.</p>
-
-            </div>
-
-
-            <div class="detail-card">
-
-                <h4>Job Position</h4>
-
-                <p>Java Developer</p>
-
-            </div>
-
-
-            <div class="detail-card">
-
-                <h4>Package</h4>
-
-                <p>₹4 - 6 LPA</p>
-
-            </div>
-
-
-            <div class="detail-card">
-
-                <h4>Location</h4>
-
-                <p>Kolkata</p>
-
-            </div>
-
-
-            <div class="detail-card">
-
-                <h4>Selection Date</h4>
-
-                <p>18 September 2026</p>
-
-            </div>
-
-
-            <div class="detail-card">
-
-                <h4>Placement Year</h4>
-
-                <p>2026-27</p>
-
+            <div class="user-box">
+                🎓 Student Portal
             </div>
 
         </div>
 
-    </div>
+
+        <!-- ================= STATISTICS ================= -->
+
+        <div class="stats">
+
+            <div class="card">
+                <h3>
+                    <%= totalPlacements %>
+                </h3>
+                <p>
+                    Placement Records
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <%= selectedCount %>
+                </h3>
+                <p>
+                    Selected / Placed
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <%= pendingCount %>
+                </h3>
+                <p>
+                    Pending
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <%= rejectedCount %>
+                </h3>
+                <p>
+                    Not Selected
+                </p>
+            </div>
+
+        </div>
 
 
-    <!-- PLACEMENT PROCESS -->
+        <!-- ================= PLACEMENT DETAILS ================= -->
 
-    <div class="timeline-box">
+        <div class="placement-section">
 
-        <h2>Placement Process</h2>
+            <div class="section-header">
 
-
-        <div class="timeline">
-
-            <div class="timeline-item">
-
-                <h3>Application Submitted</h3>
+                <h2>
+                    Placement Details
+                </h2>
 
                 <p>
-                    Your application was successfully submitted.
+                    Placement information retrieved from the college database.
                 </p>
 
             </div>
 
 
-            <div class="timeline-item">
+            <%
+                if (placements.isEmpty()) {
+            %>
 
-                <h3>Shortlisted</h3>
+                <div class="empty">
 
-                <p>
-                    Your profile was shortlisted by the company.
-                </p>
+                    <div class="empty-icon">
+                        🎓
+                    </div>
+
+                    <h3>
+                        No Placement Records Found
+                    </h3>
+
+                    <p>
+                        Your placement information will appear here
+                        when a placement record is available.
+                    </p>
+
+                    <a href="<%= request.getContextPath() %>/JobServlet"
+                       class="job-button">
+                        Browse Available Jobs
+                    </a>
+
+                </div>
+
+            <%
+                } else {
+            %>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Placement ID</th>
+                            <th>Job Position</th>
+                            <th>Company</th>
+                            <th>Placement Date</th>
+                            <th>Package</th>
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    <%
+                        for (Placement placement : placements) {
+
+                            String status =
+                                placement.getStatus();
+
+                            String statusClass =
+                                "status-default";
+
+                            if (status != null) {
+
+                                if (status.equalsIgnoreCase("Selected")
+                                        || status.equalsIgnoreCase("Placed")) {
+
+                                    statusClass =
+                                        "status-selected";
+
+                                } else if (status.equalsIgnoreCase("Pending")
+                                        || status.equalsIgnoreCase("Under Review")) {
+
+                                    statusClass =
+                                        "status-pending";
+
+                                } else if (status.equalsIgnoreCase("Rejected")
+                                        || status.equalsIgnoreCase("Not Selected")) {
+
+                                    statusClass =
+                                        "status-rejected";
+                                }
+                            }
+                    %>
+
+                        <tr>
+
+                            <td>
+                                #PLC<%= placement.getPlacementId() %>
+                            </td>
+
+                            <td>
+                                <strong>
+                                    <%= placement.getJobTitle() %>
+                                </strong>
+                            </td>
+
+                            <td>
+                                <%= placement.getCompanyName() %>
+                            </td>
+
+                            <td>
+                                <%= placement.getPlacementDate() != null
+                                    ? placement.getPlacementDate()
+                                    : "—" %>
+                            </td>
+
+                            <td>
+                                <%= placement.getPackageAmount() != null
+                                    ? placement.getPackageAmount()
+                                    : "—" %>
+                            </td>
+
+                            <td>
+
+                                <span class="status <%= statusClass %>">
+
+                                    <%= status != null
+                                        ? status
+                                        : "Not Updated" %>
+
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    <%
+                        }
+                    %>
+
+                    </tbody>
+
+                </table>
 
             </div>
 
-
-            <div class="timeline-item">
-
-                <h3>Interview Completed</h3>
-
-                <p>
-                    The interview process has been completed.
-                </p>
-
-            </div>
-
-
-            <div class="timeline-item">
-
-                <h3>Selected</h3>
-
-                <p>
-                    You have been selected for the placement.
-                </p>
-
-            </div>
+            <%
+                }
+            %>
 
         </div>
 
-
-        <!-- NOTICE -->
-
-        <div class="notice">
-
-            <h3>Placement Team Notice</h3>
-
-            <p>
-                Please contact the college placement cell for
-                joining instructions and further documentation.
-            </p>
-
-        </div>
-
-    </div>
-
+    </main>
 
 </div>
 
 </body>
+
 </html>

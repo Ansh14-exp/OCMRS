@@ -1,14 +1,19 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ page import="java.util.List" %>
+<%@ page import="com.ocmrs.model.Enrollment" %>
+<%@ page import="com.ocmrs.model.Student" %>
+
 <%
-    String username = "Student";
+    List<Enrollment> enrollments =
+        (List<Enrollment>) request.getAttribute("enrollments");
 
-    if (session.getAttribute("user") != null) {
-        com.ocmrs.model.User user =
-                (com.ocmrs.model.User) session.getAttribute("user");
+    Student student =
+        (Student) request.getAttribute("student");
 
-        username = user.getUsername();
+    if (enrollments == null) {
+        enrollments = new java.util.ArrayList<Enrollment>();
     }
 %>
 
@@ -16,566 +21,871 @@
 <html>
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<title>OCMRS | Enrollment</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-<style>
+    <title>Enrollment | OCMRS</title>
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
+    <style>
 
-body {
-    background: #f5f7fb;
-    color: #1e293b;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-/* SIDEBAR */
+        body {
+            background: #f4f7fb;
+            color: #222;
+        }
 
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 250px;
-    height: 100vh;
-    background: #111827;
-    padding: 24px 16px;
-    overflow-y: auto;
-}
+        /* ================= CONTAINER ================= */
 
-.logo {
-    text-align: center;
-    margin-bottom: 35px;
-}
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
 
-.logo h2 {
-    color: white;
-    font-size: 27px;
-    letter-spacing: 1px;
-}
+        /* ================= SIDEBAR ================= */
 
-.logo span {
-    color: #38bdf8;
-}
+        .sidebar {
+            width: 250px;
+            height: 100vh;
 
-.menu {
-    list-style: none;
-}
+            background: linear-gradient(
+                180deg,
+                #172554,
+                #1e3a8a
+            );
 
-.menu li {
-    margin: 6px 0;
-}
+            color: white;
 
-.menu a {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    padding: 13px 15px;
-    color: #cbd5e1;
-    text-decoration: none;
-    border-radius: 10px;
-    font-size: 15px;
-    transition: 0.3s;
-}
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
 
-.menu a:hover {
-    background: #1e293b;
-    color: white;
-    transform: translateX(4px);
-}
+            padding: 25px 15px;
 
-.menu a.active {
-    background: #2563eb;
-    color: white;
-}
+            overflow-y: auto;
+        }
 
-/* MAIN */
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-.main {
-    margin-left: 250px;
-    padding: 25px 30px;
-    min-height: 100vh;
-}
+        .logo h2 {
+            font-size: 25px;
+            margin-bottom: 5px;
+        }
 
-/* TOPBAR */
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
 
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    padding: 18px 24px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
+        /* IMPORTANT:
+           Keep menu vertical
+        */
 
-.topbar h1 {
-    font-size: 23px;
-}
+        .menu {
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
 
-.user-area {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+            display: block !important;
+            width: 100%;
+        }
 
-.avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: #2563eb;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-}
+        .menu li {
+            display: block !important;
+            list-style: none !important;
 
-.username {
-    font-weight: 600;
-}
+            width: 100% !important;
 
-/* PAGE HEADER */
+            margin: 0 0 8px 0 !important;
+            padding: 0 !important;
+        }
 
-.page-header {
-    margin-top: 25px;
-    padding: 28px;
-    border-radius: 18px;
-    color: white;
+        .menu a {
+            display: flex !important;
 
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #4f46e5,
-        #7c3aed
-    );
+            flex-direction: row !important;
 
-    box-shadow: 0 10px 25px rgba(79,70,229,0.2);
-}
+            align-items: center;
 
-.page-header h2 {
-    font-size: 26px;
-    margin-bottom: 7px;
-}
+            gap: 12px;
 
-.page-header p {
-    opacity: 0.9;
-    font-size: 14px;
-}
+            width: 100% !important;
 
-/* SUMMARY */
+            padding: 13px 15px;
 
-.summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-    margin-top: 25px;
-}
+            color: white;
 
-.summary-card {
-    background: white;
-    padding: 22px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
+            text-decoration: none;
 
-.summary-card h3 {
-    font-size: 27px;
-    color: #2563eb;
-    margin-bottom: 5px;
-}
+            border-radius: 8px;
 
-.summary-card p {
-    color: #64748b;
-    font-size: 13px;
-}
+            font-size: 14px;
 
-/* ENROLLMENT TABLE */
+            transition: 0.3s;
+        }
 
-.table-card {
-    background: white;
-    margin-top: 25px;
-    padding: 24px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
+        .menu a:hover {
+            background: rgba(255,255,255,0.15);
+        }
 
-.table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
+        .menu a.active {
+            background: rgba(255,255,255,0.20);
+            font-weight: bold;
+        }
 
-.table-header h2 {
-    font-size: 19px;
-}
+        .menu a span {
+            display: inline-block;
+        }
 
-.status {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
+        /* ================= MAIN ================= */
 
-.active {
-    background: #dcfce7;
-    color: #166534;
-}
+        .main {
+            margin-left: 250px;
 
-.pending {
-    background: #fef3c7;
-    color: #92400e;
-}
+            width: calc(100% - 250px);
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+            min-height: 100vh;
 
-th {
-    background: #f8fafc;
-    color: #475569;
-    font-size: 13px;
-    text-align: left;
-    padding: 14px;
-}
+            padding: 30px;
+        }
 
-td {
-    padding: 15px 14px;
-    border-bottom: 1px solid #eef2f7;
-    font-size: 13px;
-}
+        /* ================= HEADER ================= */
 
-tr:hover {
-    background: #f8fafc;
-}
+        .header {
+            display: flex;
 
-/* EMPTY MESSAGE */
+            justify-content: space-between;
 
-.empty-message {
-    text-align: center;
-    padding: 30px;
-    color: #64748b;
-}
+            align-items: center;
 
-/* RESPONSIVE */
+            margin-bottom: 30px;
+        }
 
-@media(max-width: 900px) {
+        .header h1 {
+            color: #172554;
 
-    .summary {
-        grid-template-columns: 1fr;
-    }
+            font-size: 28px;
 
-    .table-card {
-        overflow-x: auto;
-    }
-}
+            margin-bottom: 5px;
+        }
 
-@media(max-width: 700px) {
+        .header p {
+            color: #666;
 
-    .sidebar {
-        width: 210px;
-    }
+            font-size: 14px;
+        }
 
-    .main {
-        margin-left: 210px;
-        padding: 15px;
-    }
+        .user-box {
+            background: white;
 
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-}
+            padding: 11px 18px;
 
-</style>
+            border-radius: 8px;
+
+            box-shadow:
+                0 3px 12px rgba(0,0,0,0.08);
+
+            color: #333;
+        }
+
+        /* ================= STUDENT INFO ================= */
+
+        .student-info {
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 25px;
+
+            margin-bottom: 25px;
+
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .student-info h2 {
+            color: #172554;
+
+            font-size: 20px;
+
+            margin-bottom: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fit, minmax(200px, 1fr));
+
+            gap: 18px;
+        }
+
+        .info-item {
+            background: #f8fafc;
+
+            border-radius: 8px;
+
+            padding: 15px;
+        }
+
+        .info-item label {
+            display: block;
+
+            font-size: 12px;
+
+            color: #777;
+
+            margin-bottom: 6px;
+        }
+
+        .info-item strong {
+            color: #172554;
+
+            font-size: 14px;
+        }
+
+        /* ================= ENROLLMENT SECTION ================= */
+
+        .enrollment-section {
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            color: #172554;
+
+            font-size: 21px;
+
+            margin-bottom: 5px;
+        }
+
+        .section-header p {
+            color: #777;
+
+            font-size: 14px;
+        }
+
+        /* ================= TABLE ================= */
+
+        .table-container {
+            width: 100%;
+
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+
+            min-width: 650px;
+        }
+
+        th {
+            background: #eff6ff;
+
+            color: #172554;
+
+            padding: 14px;
+
+            text-align: left;
+
+            font-size: 14px;
+        }
+
+        td {
+            padding: 14px;
+
+            border-bottom:
+                1px solid #eeeeee;
+
+            font-size: 14px;
+
+            color: #444;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        /* ================= GRADE ================= */
+
+        .grade {
+            display: inline-block;
+
+            padding: 5px 10px;
+
+            border-radius: 15px;
+
+            background: #dcfce7;
+
+            color: #166534;
+
+            font-size: 12px;
+
+            font-weight: bold;
+        }
+
+        .no-grade {
+            color: #888;
+        }
+
+        /* ================= EMPTY ================= */
+
+        .empty {
+            text-align: center;
+
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 55px;
+
+            margin-bottom: 15px;
+        }
+
+        .empty h3 {
+            color: #172554;
+
+            margin-bottom: 8px;
+        }
+
+        .empty p {
+            color: #777;
+
+            font-size: 14px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                width: 210px;
+            }
+
+            .main {
+                margin-left: 210px;
+
+                width: calc(100% - 210px);
+
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .container {
+                display: block;
+            }
+
+            .sidebar {
+                position: relative;
+
+                width: 100%;
+
+                height: auto;
+
+                min-height: auto;
+            }
+
+            .main {
+                margin-left: 0;
+
+                width: 100%;
+
+                padding: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                gap: 15px;
+            }
+
+            .menu a {
+                padding: 12px 15px;
+            }
+        }
+
+    </style>
 
 </head>
 
 <body>
 
+<div class="container">
 
-<!-- ================= SIDEBAR ================= -->
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
 
-<div class="sidebar">
+    <aside class="sidebar">
 
-    <div class="logo">
-        <h2>OCM<span>RS</span></h2>
-    </div>
+        <div class="logo">
 
-    <ul class="menu">
+            <h2>OCMRS</h2>
 
-        <li>
-            <a href="dashboard.jsp">
-                🏠
-                <span>Dashboard</span>
-            </a>
-        </li>
+            <p>Student Portal</p>
 
-        <li>
-            <a href="profile.jsp">
-                👤
-                <span>Profile</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="enrollment.jsp" class="active">
-                📚
-                <span>Enrollment</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="subjects.jsp">
-                📖
-                <span>Subjects</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="exams.jsp">
-                📝
-                <span>Exams</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="results.jsp">
-                📊
-                <span>Results</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="jobs.jsp">
-                💼
-                <span>Jobs</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="apply-job.jsp">
-                📄
-                <span>Apply Job</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="application.jsp">
-                📋
-                <span>Application</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="placement.jsp">
-                🏆
-                <span>Placement</span>
-            </a>
-        </li>
-
-    </ul>
-
-</div>
+        </div>
 
 
-<!-- ================= MAIN ================= -->
+        <ul class="menu">
 
-<div class="main">
+            <li>
+
+                <a href="<%= request.getContextPath() %>/student/dashboard.jsp">
+
+                    <span>🏠</span>
+
+                    <span>Dashboard</span>
+
+                </a>
+
+            </li>
 
 
-    <!-- TOPBAR -->
+            <li>
 
-    <div class="topbar">
+                <a href="<%= request.getContextPath() %>/StudentServlet">
 
-        <h1>Enrollment</h1>
+                    <span>👤</span>
 
-        <div class="user-area">
+                    <span>Profile</span>
 
-            <div class="avatar">
-                <%= username.substring(0,1).toUpperCase() %>
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/EnrollmentServlet"
+                   class="active">
+
+                    <span>📚</span>
+
+                    <span>Enrollment</span>
+
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/SubjectServlet">
+
+                    <span>📖</span>
+
+                    <span>Subjects</span>
+
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/ExamServlet">
+
+                    <span>📝</span>
+
+                    <span>Exams</span>
+
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/ResultServlet">
+
+                    <span>📊</span>
+
+                    <span>Results</span>
+
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/JobServlet">
+
+                    <span>💼</span>
+
+                    <span>Jobs</span>
+
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/ApplicationServlet">
+
+                    <span>📨</span>
+
+                    <span>Apply Job</span>
+
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/ApplicationServlet">
+
+                    <span>📄</span>
+
+                    <span>Applications</span>
+
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/PlacementServlet">
+
+                    <span>🎓</span>
+
+                    <span>Placement</span>
+
+                </a>
+
+            </li>
+
+
+            <li>
+
+                <a href="<%= request.getContextPath() %>/LogoutServlet">
+
+                    <span>🚪</span>
+
+                    <span>Logout</span>
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+         ===================================================== -->
+
+    <main class="main">
+
+
+        <!-- ================= HEADER ================= -->
+
+        <div class="header">
+
+            <div>
+
+                <h1>Enrollment</h1>
+
+                <p>
+                    View your course enrollment information.
+                </p>
+
             </div>
 
-            <span class="username">
-                <%= username %>
-            </span>
 
-        </div>
+            <div class="user-box">
 
-    </div>
+                👨‍🎓 Student Portal
 
-
-    <!-- PAGE HEADER -->
-
-    <div class="page-header">
-
-        <h2>My Enrollment 📚</h2>
-
-        <p>
-            View and manage your current academic enrollments.
-        </p>
-
-    </div>
-
-
-    <!-- SUMMARY -->
-
-    <div class="summary">
-
-        <div class="summary-card">
-
-            <h3>04</h3>
-
-            <p>Total Enrollments</p>
+            </div>
 
         </div>
 
 
-        <div class="summary-card">
+        <!-- =================================================
+             STUDENT INFORMATION
+             ================================================= -->
 
-            <h3>03</h3>
+        <div class="student-info">
 
-            <p>Active Courses</p>
+            <h2>Student Information</h2>
+
+
+            <div class="info-grid">
+
+                <div class="info-item">
+
+                    <label>Student Name</label>
+
+                    <strong>
+
+                        <%= student != null
+                            ? student.getName()
+                            : "—" %>
+
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <label>Student ID</label>
+
+                    <strong>
+
+                        <%= student != null
+                            ? student.getStudentId()
+                            : "—" %>
+
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <label>Email</label>
+
+                    <strong>
+
+                        <%= student != null
+                            ? student.getEmail()
+                            : "—" %>
+
+                    </strong>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <label>Course ID</label>
+
+                    <strong>
+
+                        <%= student != null
+                            ? student.getCourseId()
+                            : "—" %>
+
+                    </strong>
+
+                </div>
+
+            </div>
 
         </div>
 
 
-        <div class="summary-card">
+        <!-- =================================================
+             ENROLLMENT DETAILS
+             ================================================= -->
 
-            <h3>01</h3>
+        <div class="enrollment-section">
 
-            <p>Pending Enrollment</p>
+
+            <div class="section-header">
+
+                <h2>
+                    Enrollment Details
+                </h2>
+
+                <p>
+                    Your course enrollment history.
+                </p>
+
+            </div>
+
+
+            <%
+                if (enrollments.isEmpty()) {
+            %>
+
+
+                <div class="empty">
+
+                    <div class="empty-icon">
+                        📚
+                    </div>
+
+                    <h3>
+                        No Enrollment Records Found
+                    </h3>
+
+                    <p>
+                        No enrollment information is currently
+                        available for your account.
+                    </p>
+
+                </div>
+
+
+            <%
+                } else {
+            %>
+
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Enrollment ID
+                                </th>
+
+                                <th>
+                                    Student ID
+                                </th>
+
+                                <th>
+                                    Course ID
+                                </th>
+
+                                <th>
+                                    Enrollment Year
+                                </th>
+
+                                <th>
+                                    Grade
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+
+                        <%
+                            for (Enrollment enrollment : enrollments) {
+                        %>
+
+
+                            <tr>
+
+                                <td>
+
+                                    #ENR<%= enrollment.getEnrollmentId() %>
+
+                                </td>
+
+
+                                <td>
+
+                                    <%= enrollment.getStudentId() %>
+
+                                </td>
+
+
+                                <td>
+
+                                    <%= enrollment.getCourseId() %>
+
+                                </td>
+
+
+                                <td>
+
+                                    <%= enrollment.getEnrollmentYear() %>
+
+                                </td>
+
+
+                                <td>
+
+                                    <%
+                                        String grade =
+                                            enrollment.getGrade();
+
+                                        if (grade != null
+                                                && !grade.trim().isEmpty()) {
+                                    %>
+
+                                        <span class="grade">
+
+                                            <%= grade %>
+
+                                        </span>
+
+                                    <%
+                                        } else {
+                                    %>
+
+                                        <span class="no-grade">
+                                            Not Assigned
+                                        </span>
+
+                                    <%
+                                        }
+                                    %>
+
+                                </td>
+
+                            </tr>
+
+
+                        <%
+                            }
+                        %>
+
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+            <%
+                }
+            %>
+
 
         </div>
 
-    </div>
 
-
-    <!-- ENROLLMENT TABLE -->
-
-    <div class="table-card">
-
-        <div class="table-header">
-
-            <h2>Enrollment Details</h2>
-
-        </div>
-
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>Enrollment ID</th>
-
-                    <th>Course</th>
-
-                    <th>Department</th>
-
-                    <th>Academic Year</th>
-
-                    <th>Status</th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-                <tr>
-
-                    <td>ENR001</td>
-
-                    <td>B.Tech Computer Science</td>
-
-                    <td>Computer Science</td>
-
-                    <td>2026-27</td>
-
-                    <td>
-                        <span class="status active">
-                            Active
-                        </span>
-                    </td>
-
-                </tr>
-
-
-                <tr>
-
-                    <td>ENR002</td>
-
-                    <td>Database Management</td>
-
-                    <td>Computer Science</td>
-
-                    <td>2026-27</td>
-
-                    <td>
-                        <span class="status active">
-                            Active
-                        </span>
-                    </td>
-
-                </tr>
-
-
-                <tr>
-
-                    <td>ENR003</td>
-
-                    <td>Web Technology</td>
-
-                    <td>Computer Science</td>
-
-                    <td>2026-27</td>
-
-                    <td>
-                        <span class="status active">
-                            Active
-                        </span>
-                    </td>
-
-                </tr>
-
-
-                <tr>
-
-                    <td>ENR004</td>
-
-                    <td>Advanced Programming</td>
-
-                    <td>Computer Science</td>
-
-                    <td>2026-27</td>
-
-                    <td>
-                        <span class="status pending">
-                            Pending
-                        </span>
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
+    </main>
 
 </div>
 
-
 </body>
+
 </html>

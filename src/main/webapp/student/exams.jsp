@@ -1,14 +1,18 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
+<%@ page language="java"
+    contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ page import="java.util.List" %>
+<%@ page import="com.ocmrs.model.Exam" %>
+
 <%
-    String username = "Student";
+    List<Exam> exams = (List<Exam>) request.getAttribute("exams");
 
-    if (session.getAttribute("user") != null) {
-        com.ocmrs.model.User user =
-                (com.ocmrs.model.User) session.getAttribute("user");
-
-        username = user.getUsername();
+    if (exams == null) {
+        response.sendRedirect(
+            request.getContextPath() + "/ExamServlet"
+        );
+        return;
     }
 %>
 
@@ -16,812 +20,468 @@
 <html>
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <title>My Exams - OCMRS</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7fb;
+            color: #333;
+        }
+
+        /* ================= SIDEBAR ================= */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 240px;
+            height: 100vh;
+
+            background: linear-gradient(
+                180deg,
+                #667eea,
+                #764ba2
+            );
+
+            padding-top: 25px;
+            box-shadow: 3px 0 15px rgba(0,0,0,0.12);
+
+            overflow-y: auto;
+        }
+
+        .logo {
+            text-align: center;
+            color: white;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logo h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
 
-<title>OCMRS | Exams</title>
+            padding: 14px 22px;
+            margin: 5px 12px;
+
+            border-radius: 8px;
+
+            font-size: 15px;
+
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255,255,255,0.18);
+            transform: translateX(4px);
+        }
 
-<style>
+        .sidebar a.active {
+            background: rgba(255,255,255,0.25);
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+        }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
+        /* ================= MAIN CONTENT ================= */
 
-body {
-    background: #f5f7fb;
-    color: #1e293b;
-}
+        .main-content {
+            margin-left: 240px;
+            padding: 40px;
+            min-height: 100vh;
+        }
 
-/* ================= SIDEBAR ================= */
+        .header {
+            background: linear-gradient(
+                135deg,
+                #667eea,
+                #764ba2
+            );
 
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
+            color: white;
+            padding: 25px;
 
-    width: 250px;
-    height: 100vh;
+            border-radius: 15px;
+            margin-bottom: 30px;
 
-    background: #111827;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
 
-    padding: 24px 16px;
+        .header h1 {
+            margin-bottom: 8px;
+            font-size: 30px;
+        }
 
-    overflow-y: auto;
-}
+        .header p {
+            opacity: 0.9;
+        }
 
-.logo {
-    text-align: center;
-    margin-bottom: 35px;
-}
+        /* ================= EXAM CONTAINER ================= */
 
-.logo h2 {
-    color: white;
-    font-size: 27px;
-    letter-spacing: 1px;
-}
+        .exam-container {
+            background: white;
+            padding: 25px;
 
-.logo span {
-    color: #38bdf8;
-}
+            border-radius: 15px;
 
-.menu {
-    list-style: none;
-}
+            box-shadow:
+                0 5px 20px rgba(0,0,0,0.08);
 
-.menu li {
-    margin: 6px 0;
-}
+            overflow-x: auto;
+        }
 
-.menu a {
-    display: flex;
-    align-items: center;
-    gap: 13px;
+        .exam-container h2 {
+            margin-bottom: 20px;
+            color: #444;
+        }
 
-    padding: 13px 15px;
+        /* ================= TABLE ================= */
 
-    color: #cbd5e1;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
 
-    text-decoration: none;
+        th {
+            background: #667eea;
+            color: white;
 
-    border-radius: 10px;
+            padding: 14px;
+            text-align: left;
+        }
 
-    font-size: 15px;
+        td {
+            padding: 14px;
 
-    transition: 0.3s;
-}
+            border-bottom: 1px solid #eee;
+        }
 
-.menu a:hover {
-    background: #1e293b;
-    color: white;
+        tr:hover {
+            background: #f8f9ff;
+        }
 
-    transform: translateX(4px);
-}
+        .exam-type {
+            font-weight: bold;
+            color: #667eea;
+        }
 
-.menu a.active {
-    background: #2563eb;
-    color: white;
-}
+        .marks {
+            font-weight: bold;
+        }
 
-/* ================= MAIN ================= */
+        /* ================= NO EXAM ================= */
 
-.main {
-    margin-left: 250px;
+        .no-exam {
+            text-align: center;
 
-    padding: 25px 30px;
+            padding: 40px;
 
-    min-height: 100vh;
-}
+            color: #777;
 
-/* ================= TOPBAR ================= */
+            font-size: 18px;
+        }
 
-.topbar {
-    display: flex;
+        /* ================= BACK BUTTON ================= */
 
-    justify-content: space-between;
+        .back-btn {
+            display: inline-block;
 
-    align-items: center;
+            margin-top: 20px;
 
-    background: white;
+            padding: 10px 20px;
 
-    padding: 18px 24px;
+            background: #667eea;
 
-    border-radius: 15px;
+            color: white;
 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
+            text-decoration: none;
 
-.topbar h1 {
-    font-size: 23px;
-}
+            border-radius: 8px;
 
-.user-area {
-    display: flex;
-    align-items: center;
+            transition: 0.3s;
+        }
 
-    gap: 12px;
-}
+        .back-btn:hover {
+            background: #5568d9;
+            transform: translateY(-2px);
+        }
 
-.avatar {
-    width: 42px;
-    height: 42px;
+        /* ================= RESPONSIVE ================= */
 
-    border-radius: 50%;
+        @media (max-width: 900px) {
 
-    background: #2563eb;
+            .sidebar {
+                width: 200px;
+            }
 
-    color: white;
+            .main-content {
+                margin-left: 200px;
+                padding: 25px;
+            }
 
-    display: flex;
+        }
 
-    justify-content: center;
-    align-items: center;
+        @media (max-width: 700px) {
 
-    font-weight: bold;
-}
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
 
-.username {
-    font-weight: 600;
-}
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
 
-/* ================= PAGE HEADER ================= */
+            .sidebar a {
+                display: inline-block;
+                width: auto;
+            }
 
-.page-header {
-    margin-top: 25px;
+        }
 
-    padding: 28px;
-
-    border-radius: 18px;
-
-    color: white;
-
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #4f46e5,
-        #7c3aed
-    );
-
-    box-shadow: 0 10px 25px rgba(79,70,229,0.2);
-}
-
-.page-header h2 {
-    font-size: 26px;
-
-    margin-bottom: 7px;
-}
-
-.page-header p {
-    font-size: 14px;
-
-    opacity: 0.9;
-}
-
-/* ================= SUMMARY ================= */
-
-.summary {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 18px;
-
-    margin-top: 25px;
-}
-
-.summary-card {
-    background: white;
-
-    padding: 22px;
-
-    border-radius: 15px;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-.summary-card h3 {
-    font-size: 27px;
-
-    color: #2563eb;
-
-    margin-bottom: 5px;
-}
-
-.summary-card p {
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-/* ================= EXAM TABLE ================= */
-
-.exam-card {
-    background: white;
-
-    margin-top: 25px;
-
-    padding: 24px;
-
-    border-radius: 15px;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-
-    overflow-x: auto;
-}
-
-.exam-header {
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    margin-bottom: 20px;
-}
-
-.exam-header h2 {
-    font-size: 19px;
-}
-
-.exam-header span {
-    color: #64748b;
-
-    font-size: 13px;
-}
-
-table {
-    width: 100%;
-
-    border-collapse: collapse;
-
-    min-width: 700px;
-}
-
-th {
-    background: #f8fafc;
-
-    color: #475569;
-
-    font-size: 13px;
-
-    text-align: left;
-
-    padding: 14px;
-}
-
-td {
-    padding: 15px 14px;
-
-    border-bottom: 1px solid #eef2f7;
-
-    font-size: 13px;
-}
-
-tr:hover {
-    background: #f8fafc;
-}
-
-/* ================= STATUS ================= */
-
-.status {
-    display: inline-block;
-
-    padding: 6px 12px;
-
-    border-radius: 20px;
-
-    font-size: 11px;
-
-    font-weight: 600;
-}
-
-.upcoming {
-    background: #dbeafe;
-
-    color: #1d4ed8;
-}
-
-.completed {
-    background: #dcfce7;
-
-    color: #166534;
-}
-
-/* ================= EXAM CARDS ================= */
-
-.exam-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 18px;
-
-    margin-top: 25px;
-}
-
-.exam-box {
-    background: white;
-
-    padding: 22px;
-
-    border-radius: 15px;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-.exam-icon {
-    width: 48px;
-    height: 48px;
-
-    border-radius: 12px;
-
-    background: #eff6ff;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    font-size: 22px;
-
-    margin-bottom: 15px;
-}
-
-.exam-box h3 {
-    font-size: 16px;
-
-    margin-bottom: 8px;
-}
-
-.exam-box p {
-    color: #64748b;
-
-    font-size: 12px;
-
-    line-height: 1.7;
-}
-
-/* ================= RESPONSIVE ================= */
-
-@media(max-width: 1000px) {
-
-    .exam-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .summary {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-}
-
-@media(max-width: 700px) {
-
-    .sidebar {
-        width: 210px;
-    }
-
-    .main {
-        margin-left: 210px;
-
-        padding: 15px;
-    }
-
-    .topbar {
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 12px;
-    }
-
-    .summary {
-        grid-template-columns: 1fr;
-    }
-
-    .exam-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-</style>
+    </style>
 
 </head>
 
 <body>
 
 
-<!-- ================= SIDEBAR ================= -->
+<!-- =====================================================
+     SIDEBAR
+     ===================================================== -->
 
 <div class="sidebar">
 
     <div class="logo">
 
-        <h2>OCM<span>RS</span></h2>
+        <h2>OCMRS</h2>
+
+        <p>Student Portal</p>
 
     </div>
 
 
-    <ul class="menu">
+    <a href="<%= request.getContextPath() %>/student/dashboard.jsp">
 
-        <li>
-            <a href="dashboard.jsp">
-                🏠
-                <span>Dashboard</span>
-            </a>
-        </li>
+        🏠 Dashboard
 
-        <li>
-            <a href="profile.jsp">
-                👤
-                <span>Profile</span>
-            </a>
-        </li>
+    </a>
 
-        <li>
-            <a href="enrollment.jsp">
-                📚
-                <span>Enrollment</span>
-            </a>
-        </li>
 
-        <li>
-            <a href="subjects.jsp">
-                📖
-                <span>Subjects</span>
-            </a>
-        </li>
+    <a href="<%= request.getContextPath() %>/StudentServlet">
 
-        <li>
-            <a href="exams.jsp" class="active">
-                📝
-                <span>Exams</span>
-            </a>
-        </li>
+        👤 Profile
 
-        <li>
-            <a href="results.jsp">
-                📊
-                <span>Results</span>
-            </a>
-        </li>
+    </a>
 
-        <li>
-            <a href="jobs.jsp">
-                💼
-                <span>Jobs</span>
-            </a>
-        </li>
 
-        <li>
-            <a href="apply-job.jsp">
-                📄
-                <span>Apply Job</span>
-            </a>
-        </li>
+    <a href="<%= request.getContextPath() %>/EnrollmentServlet">
 
-        <li>
-            <a href="application.jsp">
-                📋
-                <span>Application</span>
-            </a>
-        </li>
+        📚 Enrollment
 
-        <li>
-            <a href="placement.jsp">
-                🏆
-                <span>Placement</span>
-            </a>
-        </li>
+    </a>
 
-    </ul>
+
+    <a href="<%= request.getContextPath() %>/SubjectServlet">
+
+        📖 Subjects
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/ExamServlet"
+       class="active">
+
+        📝 Exams
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/ResultServlet">
+
+        📊 Results
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/JobServlet">
+
+        💼 Jobs
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/ApplicationServlet">
+
+        📨 Apply Job
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/ApplicationServlet">
+
+        📄 Applications
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/PlacementServlet">
+
+        🎓 Placement
+
+    </a>
+
+
+    <a href="<%= request.getContextPath() %>/LogoutServlet">
+
+        🚪 Logout
+
+    </a>
 
 </div>
 
 
-<!-- ================= MAIN ================= -->
+<!-- =====================================================
+     MAIN CONTENT
+     ===================================================== -->
 
-<div class="main">
-
-
-    <!-- TOPBAR -->
-
-    <div class="topbar">
-
-        <h1>Examination</h1>
-
-        <div class="user-area">
-
-            <div class="avatar">
-                <%= username.substring(0,1).toUpperCase() %>
-            </div>
-
-            <span class="username">
-                <%= username %>
-            </span>
-
-        </div>
-
-    </div>
+<div class="main-content">
 
 
-    <!-- PAGE HEADER -->
+    <!-- HEADER -->
 
-    <div class="page-header">
+    <div class="header">
 
-        <h2>Exams & Schedule 📝</h2>
+        <h1>📚 My Exams</h1>
 
         <p>
-            View your examination schedule, dates and examination status.
+            View your upcoming and scheduled examinations
         </p>
 
     </div>
 
 
-    <!-- SUMMARY -->
+    <!-- EXAM SECTION -->
 
-    <div class="summary">
+    <div class="exam-container">
 
-        <div class="summary-card">
-
-            <h3>06</h3>
-
-            <p>Total Exams</p>
-
-        </div>
+        <h2>Exam Schedule</h2>
 
 
-        <div class="summary-card">
-
-            <h3>04</h3>
-
-            <p>Upcoming Exams</p>
-
-        </div>
+        <% if (exams.isEmpty()) { %>
 
 
-        <div class="summary-card">
+            <div class="no-exam">
 
-            <h3>02</h3>
+                No exams scheduled yet.
 
-            <p>Completed Exams</p>
-
-        </div>
-
-    </div>
+            </div>
 
 
-    <!-- EXAM TABLE -->
-
-    <div class="exam-card">
-
-        <div class="exam-header">
-
-            <h2>Examination Schedule</h2>
-
-            <span>Academic Year 2026-27</span>
-
-        </div>
+        <% } else { %>
 
 
-        <table>
-
-            <thead>
+            <table>
 
                 <tr>
 
                     <th>Exam ID</th>
 
-                    <th>Subject</th>
+                    <th>Subject ID</th>
 
-                    <th>Date</th>
+                    <th>Exam Type</th>
 
-                    <th>Time</th>
+                    <th>Exam Date</th>
 
-                    <th>Semester</th>
-
-                    <th>Status</th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-
-                <tr>
-
-                    <td>EX001</td>
-
-                    <td>Java Programming</td>
-
-                    <td>15 Oct 2026</td>
-
-                    <td>10:00 AM</td>
-
-                    <td>5th</td>
-
-                    <td>
-                        <span class="status upcoming">
-                            Upcoming
-                        </span>
-                    </td>
+                    <th>Total Marks</th>
 
                 </tr>
 
 
-                <tr>
+                <% for (Exam exam : exams) { %>
 
-                    <td>EX002</td>
 
-                    <td>Database Management</td>
+                    <tr>
 
-                    <td>18 Oct 2026</td>
+                        <td>
 
-                    <td>10:00 AM</td>
+                            <%= exam.getExamId() %>
 
-                    <td>5th</td>
+                        </td>
 
-                    <td>
-                        <span class="status upcoming">
-                            Upcoming
-                        </span>
-                    </td>
 
-                </tr>
+                        <td>
 
+                            <%= exam.getSubjectId() %>
 
-                <tr>
+                        </td>
 
-                    <td>EX003</td>
 
-                    <td>Web Technology</td>
+                        <td class="exam-type">
 
-                    <td>21 Oct 2026</td>
+                            <%= exam.getExamType() %>
 
-                    <td>02:00 PM</td>
+                        </td>
 
-                    <td>5th</td>
 
-                    <td>
-                        <span class="status upcoming">
-                            Upcoming
-                        </span>
-                    </td>
+                        <td>
 
-                </tr>
+                            <%= exam.getExamDate() %>
 
+                        </td>
 
-                <tr>
 
-                    <td>EX004</td>
+                        <td class="marks">
 
-                    <td>Data Structures</td>
+                            <%= exam.getTotalMarks() %>
 
-                    <td>24 Oct 2026</td>
+                        </td>
 
-                    <td>10:00 AM</td>
+                    </tr>
 
-                    <td>5th</td>
 
-                    <td>
-                        <span class="status upcoming">
-                            Upcoming
-                        </span>
-                    </td>
+                <% } %>
 
-                </tr>
 
+            </table>
 
-                <tr>
 
-                    <td>EX005</td>
+        <% } %>
 
-                    <td>Operating Systems</td>
 
-                    <td>12 Aug 2026</td>
+        <!-- BACK BUTTON -->
 
-                    <td>10:00 AM</td>
+        <a href="<%= request.getContextPath() %>/student/dashboard.jsp"
+           class="back-btn">
 
-                    <td>4th</td>
+            ← Back to Dashboard
 
-                    <td>
-                        <span class="status completed">
-                            Completed
-                        </span>
-                    </td>
-
-                </tr>
-
-
-                <tr>
-
-                    <td>EX006</td>
-
-                    <td>Computer Networks</td>
-
-                    <td>15 Aug 2026</td>
-
-                    <td>02:00 PM</td>
-
-                    <td>4th</td>
-
-                    <td>
-                        <span class="status completed">
-                            Completed
-                        </span>
-                    </td>
-
-                </tr>
-
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-
-    <!-- EXAM INFORMATION -->
-
-    <div class="exam-grid">
-
-
-        <div class="exam-box">
-
-            <div class="exam-icon">
-                📅
-            </div>
-
-            <h3>Exam Schedule</h3>
-
-            <p>
-                Check your examination dates and timings
-                before attending the examination.
-            </p>
-
-        </div>
-
-
-        <div class="exam-box">
-
-            <div class="exam-icon">
-                ⏰
-            </div>
-
-            <h3>Exam Time</h3>
-
-            <p>
-                Make sure you reach the examination venue
-                before the scheduled time.
-            </p>
-
-        </div>
-
-
-        <div class="exam-box">
-
-            <div class="exam-icon">
-                📋
-            </div>
-
-            <h3>Exam Status</h3>
-
-            <p>
-                Track your upcoming and completed examinations
-                from this page.
-            </p>
-
-        </div>
+        </a>
 
 
     </div>
-
 
 </div>
 

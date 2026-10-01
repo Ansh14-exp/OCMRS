@@ -1,17 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ page import="com.ocmrs.model.Student" %>
+
 <%
-    String username = "Student";
-    String role = "STUDENT";
-
-    if (session.getAttribute("user") != null) {
-        com.ocmrs.model.User user =
-                (com.ocmrs.model.User) session.getAttribute("user");
-
-        username = user.getUsername();
-        role = user.getRole();
-    }
+    Student student = (Student) request.getAttribute("student");
 %>
 
 <!DOCTYPE html>
@@ -20,7 +13,7 @@
 
 <meta charset="UTF-8">
 
-<title>OCMRS | Student Profile</title>
+<title>Student Profile - OCMRS</title>
 
 <style>
 
@@ -28,363 +21,185 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
+    font-family: Arial, sans-serif;
 }
 
 body {
-    background: #f5f7fb;
-    color: #1e293b;
+    background: #f4f7fc;
+    color: #222;
 }
 
-/* ================= SIDEBAR ================= */
+/* Sidebar */
 
 .sidebar {
     position: fixed;
     left: 0;
     top: 0;
-
-    width: 250px;
+    width: 240px;
     height: 100vh;
-
-    background: #111827;
-
-    padding: 24px 16px;
-
-    overflow-y: auto;
+    background: linear-gradient(180deg, #111827, #1e1b4b);
+    padding: 25px 15px;
+    color: white;
 }
 
 .logo {
     text-align: center;
-    margin-bottom: 35px;
+    margin-bottom: 30px;
 }
 
 .logo h2 {
-    color: white;
+    color: #60a5fa;
     font-size: 27px;
-    letter-spacing: 1px;
 }
 
-.logo span {
-    color: #38bdf8;
-}
-
-.menu {
-    list-style: none;
-}
-
-.menu li {
-    margin: 6px 0;
-}
-
-.menu a {
-    display: flex;
-    align-items: center;
-
-    gap: 13px;
-
-    padding: 13px 15px;
-
+.logo p {
+    font-size: 12px;
     color: #cbd5e1;
+    margin-top: 5px;
+}
 
+.sidebar a {
+    display: block;
+    color: #dbeafe;
     text-decoration: none;
-
+    padding: 13px 15px;
+    margin: 6px 0;
     border-radius: 10px;
-
-    font-size: 15px;
-
     transition: 0.3s;
 }
 
-.menu a:hover {
-    background: #1e293b;
-    color: white;
-
-    transform: translateX(4px);
-}
-
-.menu a.active {
-    background: #2563eb;
+.sidebar a:hover,
+.sidebar a.active {
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
     color: white;
 }
 
-/* ================= MAIN ================= */
+/* Main */
 
 .main {
-    margin-left: 250px;
-
-    padding: 25px 30px;
-
-    min-height: 100vh;
-}
-
-/* ================= TOPBAR ================= */
-
-.topbar {
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: center;
-
-    background: white;
-
-    padding: 18px 24px;
-
-    border-radius: 15px;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-.topbar h1 {
-    font-size: 23px;
-}
-
-.user-area {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.avatar-small {
-    width: 42px;
-    height: 42px;
-
-    border-radius: 50%;
-
-    background: #2563eb;
-
-    color: white;
-
-    display: flex;
-
-    justify-content: center;
-    align-items: center;
-
-    font-weight: bold;
-}
-
-.username {
-    font-weight: 600;
-}
-
-/* ================= PROFILE HEADER ================= */
-
-.profile-header {
-
-    margin-top: 25px;
-
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #4f46e5,
-        #7c3aed
-    );
-
-    color: white;
-
-    border-radius: 18px;
-
+    margin-left: 240px;
     padding: 30px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 25px;
-
-    box-shadow: 0 10px 25px rgba(79,70,229,0.2);
 }
 
-.profile-avatar {
+/* Header */
 
+.header {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
+    padding: 25px;
+    border-radius: 18px;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-size: 28px;
+}
+
+.header p {
+    margin-top: 8px;
+    color: #e0e7ff;
+}
+
+/* Profile */
+
+.profile-container {
+    background: white;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.profile-top {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 25px;
+}
+
+.profile-icon {
     width: 90px;
     height: 90px;
-
     border-radius: 50%;
-
-    background: rgba(255,255,255,0.18);
-
-    border: 3px solid rgba(255,255,255,0.6);
-
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
     display: flex;
-
-    justify-content: center;
     align-items: center;
-
-    font-size: 35px;
-
-    font-weight: bold;
+    justify-content: center;
+    font-size: 38px;
 }
 
-.profile-info h2 {
-    font-size: 26px;
-
-    margin-bottom: 6px;
-}
-
-.profile-info p {
-    opacity: 0.9;
-
-    font-size: 14px;
-}
-
-/* ================= CONTENT ================= */
-
-.profile-content {
-
-    display: grid;
-
-    grid-template-columns: 1fr 1.5fr;
-
-    gap: 22px;
-
-    margin-top: 25px;
-}
-
-/* ================= CARD ================= */
-
-.card {
-
-    background: white;
-
-    border-radius: 15px;
-
-    padding: 25px;
-
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-.card h2 {
-
-    font-size: 19px;
-
-    margin-bottom: 20px;
-
-    padding-bottom: 12px;
-
-    border-bottom: 1px solid #e5e7eb;
-}
-
-/* ================= ACCOUNT INFO ================= */
-
-.info-item {
-
-    padding: 15px 0;
-
-    border-bottom: 1px solid #eef2f7;
-}
-
-.info-item:last-child {
-    border-bottom: none;
-}
-
-.info-label {
-
-    font-size: 12px;
-
-    color: #64748b;
-
-    margin-bottom: 5px;
-}
-
-.info-value {
-
-    font-size: 15px;
-
-    font-weight: 600;
-
+.profile-top h2 {
     color: #1e293b;
-}
-
-/* ================= ACADEMIC INFO ================= */
-
-.info-grid {
-
-    display: grid;
-
-    grid-template-columns: repeat(2, 1fr);
-
-    gap: 18px;
-}
-
-.field {
-
-    padding: 15px;
-
-    background: #f8fafc;
-
-    border-radius: 10px;
-
-    border: 1px solid #e5e7eb;
-}
-
-.field label {
-
-    display: block;
-
-    font-size: 12px;
-
-    color: #64748b;
-
     margin-bottom: 7px;
 }
 
-.field span {
-
-    font-size: 14px;
-
-    font-weight: 600;
-
-    color: #334155;
+.profile-top p {
+    color: #64748b;
 }
 
-/* ================= STATUS ================= */
+/* Details */
 
-.status {
-
-    display: inline-block;
-
-    padding: 5px 12px;
-
-    border-radius: 20px;
-
-    background: #dcfce7;
-
-    color: #166534;
-
-    font-size: 12px;
-
-    font-weight: 600;
+.details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
 }
 
-/* ================= RESPONSIVE ================= */
-
-@media(max-width: 950px) {
-
-    .profile-content {
-        grid-template-columns: 1fr;
-    }
+.detail {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 18px;
+    border-radius: 12px;
 }
 
-@media(max-width: 700px) {
+.detail label {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.detail p {
+    color: #1e293b;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Student ID */
+
+.student-id {
+    margin-top: 25px;
+    background: #eff6ff;
+    border-left: 5px solid #2563eb;
+    padding: 18px;
+    border-radius: 10px;
+}
+
+.student-id h3 {
+    color: #1e40af;
+    margin-bottom: 7px;
+}
+
+.student-id p {
+    color: #475569;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
 
     .sidebar {
-        width: 210px;
+        width: 200px;
     }
 
     .main {
-        margin-left: 210px;
-
-        padding: 15px;
+        margin-left: 200px;
+        padding: 20px;
     }
 
-    .profile-header {
-        flex-direction: column;
-
-        text-align: center;
-    }
-
-    .info-grid {
+    .details {
         grid-template-columns: 1fr;
     }
 }
@@ -396,281 +211,230 @@ body {
 <body>
 
 
-<!-- ================= SIDEBAR ================= -->
+<!-- Sidebar -->
 
 <div class="sidebar">
 
     <div class="logo">
-
-        <h2>OCM<span>RS</span></h2>
-
+        <h2>OCMRS</h2>
+        <p>Student Portal</p>
     </div>
 
+    <!-- Dashboard -->
+    <a href="<%= request.getContextPath() %>/student/dashboard.jsp">
+        🏠 Dashboard
+    </a>
 
-    <ul class="menu">
+    <!-- Profile -->
+    <a href="<%= request.getContextPath() %>/StudentServlet"
+       class="active">
+        👤 Profile
+    </a>
 
-        <li>
-            <a href="dashboard.jsp">
-                🏠
-                <span>Dashboard</span>
-            </a>
-        </li>
+    <!-- Enrollment -->
+    <a href="<%= request.getContextPath() %>/EnrollmentServlet">
+        📚 Enrollment
+    </a>
 
-        <li>
-            <a href="profile.jsp" class="active">
-                👤
-                <span>Profile</span>
-            </a>
-        </li>
+    <!-- Subjects -->
+    <a href="<%= request.getContextPath() %>/SubjectServlet">
+        📖 Subjects
+    </a>
 
-        <li>
-            <a href="enrollment.jsp">
-                📚
-                <span>Enrollment</span>
-            </a>
-        </li>
+    <!-- Exams -->
+    <a href="<%= request.getContextPath() %>/ExamServlet">
+        📝 Exams
+    </a>
 
-        <li>
-            <a href="subjects.jsp">
-                📖
-                <span>Subjects</span>
-            </a>
-        </li>
+    <!-- Results -->
+    <a href="<%= request.getContextPath() %>/ResultServlet">
+        📊 Results
+    </a>
 
-        <li>
-            <a href="exams.jsp">
-                📝
-                <span>Exams</span>
-            </a>
-        </li>
+    <!-- Jobs -->
+    <a href="<%= request.getContextPath() %>/JobServlet">
+        💼 Jobs
+    </a>
 
-        <li>
-            <a href="results.jsp">
-                📊
-                <span>Results</span>
-            </a>
-        </li>
+    <!-- Apply Job -->
+    <a href="<%= request.getContextPath() %>/ApplicationServlet">
+        📨 Apply Job
+    </a>
 
-        <li>
-            <a href="jobs.jsp">
-                💼
-                <span>Jobs</span>
-            </a>
-        </li>
+    <!-- Applications -->
+    <a href="<%= request.getContextPath() %>/ApplicationServlet">
+        📄 Applications
+    </a>
 
-        <li>
-            <a href="apply-job.jsp">
-                📄
-                <span>Apply Job</span>
-            </a>
-        </li>
+    <!-- Placement -->
+    <a href="<%= request.getContextPath() %>/PlacementServlet">
+        🎓 Placement
+    </a>
 
-        <li>
-            <a href="application.jsp">
-                📋
-                <span>Application</span>
-            </a>
-        </li>
-
-        <li>
-            <a href="placement.jsp">
-                🏆
-                <span>Placement</span>
-            </a>
-        </li>
-
-    </ul>
+    <!-- Logout -->
+    <a href="<%= request.getContextPath() %>/LogoutServlet">
+        🚪 Logout
+    </a>
 
 </div>
 
 
-<!-- ================= MAIN ================= -->
+<!-- Main -->
 
 <div class="main">
 
 
-    <!-- TOP BAR -->
+    <!-- Header -->
 
-    <div class="topbar">
+    <div class="header">
 
         <h1>My Profile</h1>
 
-        <div class="user-area">
-
-            <div class="avatar-small">
-                <%= username.substring(0,1).toUpperCase() %>
-            </div>
-
-            <span class="username">
-                <%= username %>
-            </span>
-
-        </div>
+        <p>
+            View your personal and academic information.
+        </p>
 
     </div>
 
 
-    <!-- PROFILE HEADER -->
+    <!-- Profile Container -->
 
-    <div class="profile-header">
+    <div class="profile-container">
 
-        <div class="profile-avatar">
 
-            <%= username.substring(0,1).toUpperCase() %>
+        <!-- Profile Top -->
+
+        <div class="profile-top">
+
+            <div class="profile-icon">
+                👤
+            </div>
+
+            <div>
+
+                <h2>
+                    <%= student.getName() %>
+                </h2>
+
+                <p>
+                    Student ID: <%= student.getStudentId() %>
+                </p>
+
+            </div>
 
         </div>
 
 
-        <div class="profile-info">
+        <!-- Details -->
 
-            <h2>
-                <%= username %>
-            </h2>
+        <div class="details">
+
+
+            <div class="detail">
+
+                <label>Full Name</label>
+
+                <p>
+                    <%= student.getName() %>
+                </p>
+
+            </div>
+
+
+            <div class="detail">
+
+                <label>Email Address</label>
+
+                <p>
+                    <%= student.getEmail() %>
+                </p>
+
+            </div>
+
+
+            <div class="detail">
+
+                <label>Phone Number</label>
+
+                <p>
+                    <%= student.getPhone() %>
+                </p>
+
+            </div>
+
+
+            <div class="detail">
+
+                <label>Date of Birth</label>
+
+                <p>
+                    <%= student.getDob() %>
+                </p>
+
+            </div>
+
+
+            <div class="detail">
+
+                <label>Gender</label>
+
+                <p>
+                    <%= student.getGender() %>
+                </p>
+
+            </div>
+
+
+            <div class="detail">
+
+                <label>Address</label>
+
+                <p>
+                    <%= student.getAddress() %>
+                </p>
+
+            </div>
+
+
+            <div class="detail">
+
+                <label>College ID</label>
+
+                <p>
+                    <%= student.getCollegeId() %>
+                </p>
+
+            </div>
+
+
+            <div class="detail">
+
+                <label>Course ID</label>
+
+                <p>
+                    <%= student.getCourseId() %>
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- Student ID -->
+
+        <div class="student-id">
+
+            <h3>Student Information</h3>
 
             <p>
-                Student Account
+                Student ID:
+                <strong><%= student.getStudentId() %></strong>
+                &nbsp;&nbsp; | &nbsp;&nbsp;
+
+                User ID:
+                <strong><%= student.getUserId() %></strong>
             </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- PROFILE CONTENT -->
-
-    <div class="profile-content">
-
-
-        <!-- ACCOUNT INFORMATION -->
-
-        <div class="card">
-
-            <h2>Account Information</h2>
-
-
-            <div class="info-item">
-
-                <div class="info-label">
-                    Username
-                </div>
-
-                <div class="info-value">
-                    <%= username %>
-                </div>
-
-            </div>
-
-
-            <div class="info-item">
-
-                <div class="info-label">
-                    Role
-                </div>
-
-                <div class="info-value">
-                    <%= role %>
-                </div>
-
-            </div>
-
-
-            <div class="info-item">
-
-                <div class="info-label">
-                    Account Status
-                </div>
-
-                <div class="info-value">
-
-                    <span class="status">
-                        Active
-                    </span>
-
-                </div>
-
-            </div>
-
-
-        </div>
-
-
-        <!-- ACADEMIC INFORMATION -->
-
-        <div class="card">
-
-            <h2>Academic Information</h2>
-
-
-            <div class="info-grid">
-
-
-                <div class="field">
-
-                    <label>Student ID</label>
-
-                    <span>
-                        Not Assigned
-                    </span>
-
-                </div>
-
-
-                <div class="field">
-
-                    <label>Department</label>
-
-                    <span>
-                        Not Assigned
-                    </span>
-
-                </div>
-
-
-                <div class="field">
-
-                    <label>Course</label>
-
-                    <span>
-                        Not Assigned
-                    </span>
-
-                </div>
-
-
-                <div class="field">
-
-                    <label>Semester</label>
-
-                    <span>
-                        Not Assigned
-                    </span>
-
-                </div>
-
-
-                <div class="field">
-
-                    <label>Academic Year</label>
-
-                    <span>
-                        Not Assigned
-                    </span>
-
-                </div>
-
-
-                <div class="field">
-
-                    <label>Enrollment Status</label>
-
-                    <span>
-                        Not Assigned
-                    </span>
-
-                </div>
-
-
-            </div>
 
         </div>
 
@@ -678,7 +442,6 @@ body {
     </div>
 
 </div>
-
 
 </body>
 </html>

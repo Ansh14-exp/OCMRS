@@ -1,0 +1,14 @@
+# Java compiled files
+*.class
+
+# Eclipse/Tomcat build output
+build/
+bin/
+target/
+
+# Eclipse workspace metadata
+.metadata/
+
+# Temporary files
+*.log
+*.tmp

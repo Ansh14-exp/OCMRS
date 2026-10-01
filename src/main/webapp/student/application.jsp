@@ -1,471 +1,670 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ page import="java.util.List" %>
+<%@ page import="com.ocmrs.model.Application" %>
+
+<%
+    List<Application> applications =
+        (List<Application>) request.getAttribute("applications");
+
+    if (applications == null) {
+        applications = new java.util.ArrayList<Application>();
+    }
+
+    int totalApplications = applications.size();
+
+    int appliedCount = 0;
+    int reviewCount = 0;
+    int shortlistedCount = 0;
+    int interviewCount = 0;
+    int rejectedCount = 0;
+
+    for (Application app : applications) {
+
+        String status = app.getStatus();
+
+        if (status == null) {
+            continue;
+        }
+
+        if (status.equalsIgnoreCase("Applied")) {
+            appliedCount++;
+        }
+        else if (status.equalsIgnoreCase("Under Review")) {
+            reviewCount++;
+        }
+        else if (status.equalsIgnoreCase("Shortlisted")) {
+            shortlistedCount++;
+        }
+        else if (status.equalsIgnoreCase("Interview")) {
+            interviewCount++;
+        }
+        else if (status.equalsIgnoreCase("Rejected")
+              || status.equalsIgnoreCase("Not Selected")) {
+            rejectedCount++;
+        }
+    }
+%>
+
 <!DOCTYPE html>
 <html>
 <head>
 
-<meta charset="UTF-8">
-<title>My Applications - OCMRS</title>
+    <meta charset="UTF-8">
 
-<style>
+    <title>My Applications | OCMRS</title>
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-body {
-    background: #f4f7fc;
-    color: #222;
-}
+    <style>
 
-/* Sidebar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 240px;
-    height: 100vh;
-    background: linear-gradient(180deg, #111827, #1e1b4b);
-    padding: 25px 15px;
-    color: white;
-}
+        body {
+            background: #f4f7fb;
+            color: #222;
+        }
 
-.logo {
-    text-align: center;
-    margin-bottom: 30px;
-}
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
 
-.logo h2 {
-    color: #60a5fa;
-    font-size: 27px;
-}
+        /* ================= SIDEBAR ================= */
 
-.logo p {
-    font-size: 12px;
-    color: #cbd5e1;
-    margin-top: 5px;
-}
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #172554, #1e3a8a);
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            padding: 25px 15px;
+            overflow-y: auto;
+        }
 
-.sidebar a {
-    display: block;
-    color: #dbeafe;
-    text-decoration: none;
-    padding: 13px 15px;
-    margin: 6px 0;
-    border-radius: 10px;
-    transition: 0.3s;
-}
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-.sidebar a:hover,
-.sidebar a.active {
-    background: linear-gradient(90deg, #2563eb, #7c3aed);
-    color: white;
-}
+        .logo h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
 
-/* Main */
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
 
-.main {
-    margin-left: 240px;
-    padding: 30px;
-}
+        .menu {
+            list-style: none;
+        }
 
-/* Header */
+        .menu li {
+            margin-bottom: 8px;
+        }
 
-.header {
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    color: white;
-    padding: 25px;
-    border-radius: 18px;
-    margin-bottom: 25px;
-}
+        .menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
 
-.header h1 {
-    font-size: 28px;
-}
+        .menu a:hover {
+            background: rgba(255,255,255,0.15);
+        }
 
-.header p {
-    margin-top: 8px;
-    color: #e0e7ff;
-}
+        .menu a.active {
+            background: rgba(255,255,255,0.20);
+            font-weight: bold;
+        }
 
-/* Summary Cards */
+        /* ================= MAIN ================= */
 
-.cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin-bottom: 25px;
-}
+        .main {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            padding: 30px;
+        }
 
-.card {
-    background: white;
-    padding: 22px;
-    border-radius: 15px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.07);
-}
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
 
-.card h3 {
-    color: #64748b;
-    font-size: 14px;
-}
+        .header h1 {
+            font-size: 28px;
+            color: #172554;
+        }
 
-.card h2 {
-    margin-top: 10px;
-    color: #1e293b;
-    font-size: 28px;
-}
+        .header p {
+            color: #666;
+            margin-top: 5px;
+        }
 
-/* Application Section */
+        .user-box {
+            background: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            color: #333;
+        }
 
-.application-box {
-    background: white;
-    padding: 25px;
-    border-radius: 18px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-}
+        /* ================= STAT CARDS ================= */
 
-.application-box h2 {
-    color: #1e293b;
-    margin-bottom: 20px;
-}
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
 
-/* Table */
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+        .stat-card h3 {
+            font-size: 28px;
+            color: #1d4ed8;
+            margin-bottom: 7px;
+        }
 
-th {
-    background: #eff6ff;
-    color: #1e3a8a;
-    padding: 15px;
-    text-align: left;
-}
+        .stat-card p {
+            color: #666;
+            font-size: 14px;
+        }
 
-td {
-    padding: 15px;
-    border-bottom: 1px solid #e2e8f0;
-    color: #475569;
-}
+        /* ================= APPLICATION TABLE ================= */
 
-tr:hover {
-    background: #f8fafc;
-}
+        .application-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
 
-/* Status */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
 
-.status {
-    padding: 7px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-}
+        .section-header h2 {
+            color: #172554;
+            font-size: 21px;
+        }
 
-.pending {
-    background: #fef3c7;
-    color: #92400e;
-}
+        .apply-button {
+            background: #1d4ed8;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 7px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
 
-.shortlisted {
-    background: #dcfce7;
-    color: #166534;
-}
+        .apply-button:hover {
+            background: #163ea8;
+        }
 
-.rejected {
-    background: #fee2e2;
-    color: #991b1b;
-}
+        .table-container {
+            overflow-x: auto;
+        }
 
-.interview {
-    background: #dbeafe;
-    color: #1e40af;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-/* View Button */
+        th {
+            background: #eff6ff;
+            color: #172554;
+            padding: 14px;
+            text-align: left;
+            font-size: 14px;
+        }
 
-.view-btn {
-    text-decoration: none;
-    background: #2563eb;
-    color: white;
-    padding: 8px 13px;
-    border-radius: 7px;
-    font-size: 13px;
-}
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
 
-.view-btn:hover {
-    background: #1d4ed8;
-}
+        tr:hover {
+            background: #f8fafc;
+        }
 
-/* Info */
+        /* ================= STATUS ================= */
 
-.info {
-    margin-top: 25px;
-    background: #eff6ff;
-    border-left: 5px solid #2563eb;
-    padding: 18px;
-    border-radius: 10px;
-}
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
 
-.info h3 {
-    color: #1e40af;
-    margin-bottom: 8px;
-}
+        .status-applied {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
 
-.info p {
-    color: #475569;
-}
+        .status-review {
+            background: #fef3c7;
+            color: #92400e;
+        }
 
-/* Responsive */
+        .status-shortlisted {
+            background: #dcfce7;
+            color: #166534;
+        }
 
-@media (max-width: 1000px) {
+        .status-interview {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
 
-    .cards {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
-@media (max-width: 700px) {
+        .status-default {
+            background: #e5e7eb;
+            color: #374151;
+        }
 
-    .sidebar {
-        width: 200px;
-    }
+        /* ================= EMPTY STATE ================= */
 
-    .main {
-        margin-left: 200px;
-        padding: 20px;
-    }
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
 
-    .cards {
-        grid-template-columns: 1fr;
-    }
+        .empty-icon {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
 
-    table {
-        font-size: 12px;
-    }
-}
+        .empty h3 {
+            color: #172554;
+            margin-bottom: 8px;
+        }
 
-</style>
+        .empty p {
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                width: 210px;
+            }
+
+            .main {
+                margin-left: 210px;
+                width: calc(100% - 210px);
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                min-height: auto;
+            }
+
+            .container {
+                display: block;
+            }
+
+            .main {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 450px) {
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
 
 </head>
 
 <body>
 
-<!-- Sidebar -->
+<div class="container">
 
-<div class="sidebar">
+    <!-- ================= SIDEBAR ================= -->
 
-    <div class="logo">
-        <h2>OCMRS</h2>
-        <p>Student Portal</p>
-    </div>
+    <aside class="sidebar">
 
-    <a href="dashboard.jsp">🏠 Dashboard</a>
-    <a href="profile.jsp">👤 Profile</a>
-    <a href="enrollment.jsp">📚 Enrollment</a>
-    <a href="subjects.jsp">📖 Subjects</a>
-    <a href="exams.jsp">📝 Exams</a>
-    <a href="results.jsp">📊 Results</a>
-    <a href="jobs.jsp">💼 Jobs</a>
-    <a href="apply-job.jsp">📨 Apply Job</a>
-    <a href="application.jsp" class="active">📄 Applications</a>
-    <a href="placement.jsp">🎓 Placement</a>
-
-</div>
-
-
-<!-- Main Content -->
-
-<div class="main">
-
-    <div class="header">
-
-        <h1>My Applications</h1>
-
-        <p>
-            Track your submitted job applications and application status.
-        </p>
-
-    </div>
-
-
-    <!-- Summary Cards -->
-
-    <div class="cards">
-
-        <div class="card">
-            <h3>Total Applications</h3>
-            <h2>04</h2>
+        <div class="logo">
+            <h2>OCMRS</h2>
+            <p>Student Portal</p>
         </div>
 
-        <div class="card">
-            <h3>Under Review</h3>
-            <h2>01</h2>
-        </div>
+        <ul class="menu">
 
-        <div class="card">
-            <h3>Shortlisted</h3>
-            <h2>02</h2>
-        </div>
+            <li>
+                <a href="<%= request.getContextPath() %>/student/dashboard.jsp">
+                    🏠
+                    <span>Dashboard</span>
+                </a>
+            </li>
 
-        <div class="card">
-            <h3>Interviews</h3>
-            <h2>01</h2>
-        </div>
+            <li>
+                <a href="<%= request.getContextPath() %>/StudentServlet">
+                    👤
+                    <span>Profile</span>
+                </a>
+            </li>
 
-    </div>
+            <li>
+                <a href="<%= request.getContextPath() %>/EnrollmentServlet">
+                    📚
+                    <span>Enrollment</span>
+                </a>
+            </li>
 
+            <li>
+                <a href="<%= request.getContextPath() %>/SubjectServlet">
+                    📖
+                    <span>Subjects</span>
+                </a>
+            </li>
 
-    <!-- Application Table -->
+            <li>
+                <a href="<%= request.getContextPath() %>/ExamServlet">
+                    📝
+                    <span>Exams</span>
+                </a>
+            </li>
 
-    <div class="application-box">
+            <li>
+                <a href="<%= request.getContextPath() %>/ResultServlet">
+                    📊
+                    <span>Results</span>
+                </a>
+            </li>
 
-        <h2>Application History</h2>
+            <li>
+                <a href="<%= request.getContextPath() %>/JobServlet">
+                    💼
+                    <span>Jobs</span>
+                </a>
+            </li>
 
-        <table>
+            <li>
+                <a href="<%= request.getContextPath() %>/ApplicationServlet?action=apply">
+    📨
+    <span>Apply Job</span>
+</a>
+            </li>
 
-            <thead>
+            <li>
+                <a href="<%= request.getContextPath() %>/ApplicationServlet"
+                   class="active">
+                    📄
+                    <span>Applications</span>
+                </a>
+            </li>
 
-                <tr>
+            <li>
+                <a href="<%= request.getContextPath() %>/PlacementServlet">
+                    🎓
+                    <span>Placement</span>
+                </a>
+            </li>
 
-                    <th>Application ID</th>
-                    <th>Job Position</th>
-                    <th>Company</th>
-                    <th>Applied Date</th>
-                    <th>Status</th>
-                    <th>Action</th>
+            <li>
+                <a href="<%= request.getContextPath() %>/LogoutServlet">
+                    🚪
+                    <span>Logout</span>
+                </a>
+            </li>
 
-                </tr>
+        </ul>
 
-            </thead>
-
-
-            <tbody>
-
-                <tr>
-
-                    <td>APP001</td>
-
-                    <td>Java Developer</td>
-
-                    <td>Tech Solutions Pvt. Ltd.</td>
-
-                    <td>18 Sep 2026</td>
-
-                    <td>
-                        <span class="status shortlisted">
-                            Shortlisted
-                        </span>
-                    </td>
-
-                    <td>
-                        <a href="#" class="view-btn">
-                            View
-                        </a>
-                    </td>
-
-                </tr>
-
-
-                <tr>
-
-                    <td>APP002</td>
-
-                    <td>Web Developer</td>
-
-                    <td>Digital Works India</td>
-
-                    <td>16 Sep 2026</td>
-
-                    <td>
-                        <span class="status interview">
-                            Interview
-                        </span>
-                    </td>
-
-                    <td>
-                        <a href="#" class="view-btn">
-                            View
-                        </a>
-                    </td>
-
-                </tr>
+    </aside>
 
 
-                <tr>
+    <!-- ================= MAIN CONTENT ================= -->
 
-                    <td>APP003</td>
+    <main class="main">
 
-                    <td>Database Developer</td>
+        <div class="header">
 
-                    <td>DataCore Technologies</td>
+            <div>
+                <h1>My Applications</h1>
 
-                    <td>14 Sep 2026</td>
+                <p>
+                    Track your job applications and their current status.
+                </p>
+            </div>
 
-                    <td>
-                        <span class="status pending">
-                            Under Review
-                        </span>
-                    </td>
-
-                    <td>
-                        <a href="#" class="view-btn">
-                            View
-                        </a>
-                    </td>
-
-                </tr>
-
-
-                <tr>
-
-                    <td>APP004</td>
-
-                    <td>Software Intern</td>
-
-                    <td>Innovation Labs</td>
-
-                    <td>10 Sep 2026</td>
-
-                    <td>
-                        <span class="status rejected">
-                            Not Selected
-                        </span>
-                    </td>
-
-                    <td>
-                        <a href="#" class="view-btn">
-                            View
-                        </a>
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-
-        <!-- Information -->
-
-        <div class="info">
-
-            <h3>Application Status Information</h3>
-
-            <p>
-                Your application status will be updated by the company
-                or placement team. Check this page regularly for updates
-                regarding interviews and selection.
-            </p>
+            <div class="user-box">
+                👨‍🎓 Student Portal
+            </div>
 
         </div>
 
-    </div>
+
+        <!-- ================= STATISTICS ================= -->
+
+        <div class="stats">
+
+            <div class="stat-card">
+                <h3><%= totalApplications %></h3>
+                <p>Total Applications</p>
+            </div>
+
+            <div class="stat-card">
+                <h3><%= appliedCount %></h3>
+                <p>Applied</p>
+            </div>
+
+            <div class="stat-card">
+                <h3><%= reviewCount %></h3>
+                <p>Under Review</p>
+            </div>
+
+            <div class="stat-card">
+                <h3><%= shortlistedCount %></h3>
+                <p>Shortlisted</p>
+            </div>
+
+            <div class="stat-card">
+                <h3><%= interviewCount %></h3>
+                <p>Interview</p>
+            </div>
+
+            <div class="stat-card">
+                <h3><%= rejectedCount %></h3>
+                <p>Rejected</p>
+            </div>
+
+        </div>
+
+
+        <!-- ================= APPLICATIONS ================= -->
+
+        <div class="application-section">
+
+            <div class="section-header">
+
+                <h2>Application History</h2>
+
+                <a href="<%= request.getContextPath() %>/ApplicationServlet?action=apply"
+   class="apply-button">
+    + Apply for Jobs
+</a>
+
+            </div>
+
+
+            <%
+                if (applications.isEmpty()) {
+            %>
+
+                <div class="empty">
+
+                    <div class="empty-icon">
+                        📄
+                    </div>
+
+                    <h3>No Applications Yet</h3>
+
+                    <p>
+                        You have not applied for any job yet.
+                    </p>
+
+                    <a href="<%= request.getContextPath() %>/ApplicationServlet?action=apply"
+   class="apply-button">
+    Browse Available Jobs
+</a>
+
+                </div>
+
+            <%
+                } else {
+            %>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Application ID</th>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Application Date</th>
+                            <th>Status</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    <%
+                        for (Application app : applications) {
+
+                            String status = app.getStatus();
+
+                            String statusClass = "status-default";
+
+                            if (status != null) {
+
+                                if (status.equalsIgnoreCase("Applied")) {
+                                    statusClass = "status-applied";
+                                }
+                                else if (status.equalsIgnoreCase("Under Review")) {
+                                    statusClass = "status-review";
+                                }
+                                else if (status.equalsIgnoreCase("Shortlisted")) {
+                                    statusClass = "status-shortlisted";
+                                }
+                                else if (status.equalsIgnoreCase("Interview")) {
+                                    statusClass = "status-interview";
+                                }
+                                else if (status.equalsIgnoreCase("Rejected")
+                                      || status.equalsIgnoreCase("Not Selected")) {
+                                    statusClass = "status-rejected";
+                                }
+                            }
+                    %>
+
+                        <tr>
+
+                            <td>
+                                #APP<%= app.getApplicationId() %>
+                            </td>
+
+                            <td>
+                                <strong>
+                                    <%= app.getJobTitle() %>
+                                </strong>
+                            </td>
+
+                            <td>
+                                <%= app.getCompanyName() %>
+                            </td>
+
+                            <td>
+                                <%= app.getApplicationDate() %>
+                            </td>
+
+                            <td>
+
+                                <span class="status <%= statusClass %>">
+                                    <%= status %>
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    <%
+                        }
+                    %>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <%
+                }
+            %>
+
+        </div>
+
+    </main>
 
 </div>
 
